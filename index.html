@@ -250,7 +250,7 @@ const X_VOL = 0.075;   // Red  if V > X
 const Y_VOL = 0.030;   // Blue if V < Y  |  Green otherwise
 
 // Truck bed dimensions (metres)
-const TRUCK_W = 1.4, TRUCK_H = 0.9, TRUCK_D = 2.2;
+const TRUCK_W = 0.9, TRUCK_H = 0.6, TRUCK_D = 1.4;
 const TRUCK_VOLUME = TRUCK_W * TRUCK_H * TRUCK_D;  // ≈ 2.77 m³
 
 // ══════════════════════════════════════════════════════════════════
@@ -433,7 +433,7 @@ class PalletModule {
   }
 
   // Build and place the pallet mesh at world position
-  create(wx, wz) {
+  create(wx, wy, wz) {
     if (this.palletMesh) { scene.remove(this.palletMesh); }
 
     const group = new THREE.Group();
@@ -477,12 +477,12 @@ class PalletModule {
     spr.position.set(0, 0.35, 0);
     group.add(spr);
 
-    group.position.set(wx, 0, wz);
+    group.position.set(wx, wy, wz);
     scene.add(group);
 
     this.palletMesh = group;
-    // cy_top = Y of the top surface of the pallet
-    this.palletData = { cx:wx, cy_top:0.165, cz:wz };
+    // cy_top = Y of the top surface of the pallet (floor Y + pallet height)
+    this.palletData = { cx:wx, cy_top: wy + 0.165, cz:wz };
     this.placed = true;
     dbg(`Palete criado em (${wx.toFixed(2)}, ${wz.toFixed(2)})`);
   }
@@ -533,7 +533,7 @@ class TruckModule {
     this.isFlashing = false;
   }
 
-  create(wx, wz) {
+  create(wx, wy, wz) {
     if (this.truckMesh) scene.remove(this.truckMesh);
 
     const group = new THREE.Group();
@@ -589,12 +589,12 @@ class TruckModule {
       group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), arrowMat));
     }
 
-    group.position.set(wx, 0, wz);
+    group.position.set(wx, wy, wz);
     scene.add(group);
 
     this.truckMesh = group;
-    // cy_floor = Y of the truck bed surface
-    this.truckData = { cx:wx, cy_floor:0.04, cz:wz };
+    // cy_floor = Y of the truck bed surface (floor Y + thin floor plate)
+    this.truckData = { cx:wx, cy_floor: wy + 0.04, cz:wz };
     this.placed    = true;
     this.boxes     = [];
     dbg(`Caçamba criada em (${wx.toFixed(2)}, ${wz.toFixed(2)})`);
@@ -775,7 +775,7 @@ function handlePlacement() {
     // ── PALLET MODULE ─────────────────────────────────────────────
     if (!palletMod.placed) {
       // First tap → place the pallet on the floor
-      palletMod.create(floorPos.x, floorPos.z);
+      palletMod.create(floorPos.x, floorPos.y, floorPos.z);
       toast('valid', '🟫 PALETE POSICIONADO\nToque sobre o palete para carregar caixas');
       dbg('Palete criado');
     } else {
@@ -786,7 +786,7 @@ function handlePlacement() {
     // ── TRUCK BED / CAÇAMBA MODULE ─────────────────────────────────
     if (!truckMod.placed) {
       // First tap → place the truck bed on the floor
-      truckMod.create(floorPos.x, floorPos.z);
+      truckMod.create(floorPos.x, floorPos.y, floorPos.z);
       toast('valid', '🚛 CAÇAMBA POSICIONADA\nToque dentro da caçamba para carregar caixas');
       dbg('Caçamba criada');
     } else {
