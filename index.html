@@ -9,639 +9,984 @@
 
   <style>
     :root {
-      --cyan:  #00c8ff;
-      --red:   #ff3c3c;
-      --green: #39ff6a;
-      --blue:  #3a8fff;
-      --panel: rgba(4, 14, 24, 0.82);
-      --mono:  'Share Tech Mono', monospace;
-      --ui:    'Barlow Condensed', sans-serif;
+      --cyan:   #00c8ff;
+      --red:    #ff3c3c;
+      --green:  #39ff6a;
+      --blue:   #3a8fff;
+      --yellow: #ffd43b;
+      --panel:  rgba(4, 14, 24, 0.85);
+      --border: rgba(0,200,255,.25);
+      --mono:   'Share Tech Mono', monospace;
+      --ui:     'Barlow Condensed', sans-serif;
     }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; height:100%; background:#080c10; overflow:hidden; font-family:var(--ui); color:#c8d8e8; }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    html, body {
-      width: 100%; height: 100%;
-      background: #080c10;
-      overflow: hidden;
-      font-family: var(--ui);
-      color: #c8d8e8;
-    }
-
-    /* ── Canvas must sit at z-index 0, full screen ── */
     canvas {
-      position: fixed !important;
-      top: 0 !important; left: 0 !important;
-      width: 100% !important; height: 100% !important;
-      z-index: 0;
-      display: block;
+      position:fixed !important; top:0 !important; left:0 !important;
+      width:100% !important; height:100% !important; z-index:0; display:block;
     }
 
-    /* ═══════════════════ SPLASH ═══════════════════ */
+    /* ══ SPLASH ════════════════════════════════════════════════════ */
     #splash {
-      position: fixed; inset: 0; z-index: 200;
-      background: #080c10;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 18px; padding: 24px;
-      transition: opacity .5s;
+      position:fixed; inset:0; z-index:200; background:#080c10;
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; gap:16px; padding:24px;
+      transition:opacity .5s;
     }
-    #splash.hidden { opacity: 0; pointer-events: none; }
-
+    #splash.hidden { opacity:0; pointer-events:none; }
     .logo-ring {
-      width: 90px; height: 90px;
-      border: 2px solid var(--cyan);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2.4rem;
-      animation: pulse 2s infinite;
+      width:88px; height:88px; border:2px solid var(--cyan);
+      border-radius:50%; display:flex; align-items:center;
+      justify-content:center; font-size:2.2rem;
+      animation:pulse-ring 2s infinite;
     }
-    @keyframes pulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(0,200,255,.45); }
-      50%      { box-shadow: 0 0 0 14px rgba(0,200,255,0); }
+    @keyframes pulse-ring {
+      0%,100% { box-shadow:0 0 0 0 rgba(0,200,255,.4); }
+      50%      { box-shadow:0 0 0 14px rgba(0,200,255,0); }
     }
-
     #splash h1 {
-      font-family: var(--mono);
-      font-size: clamp(1.1rem, 4.5vw, 1.6rem);
-      color: var(--cyan);
-      letter-spacing: .15em;
-      text-transform: uppercase;
-      text-align: center;
-      line-height: 1.5;
+      font-family:var(--mono); font-size:clamp(1rem,4.5vw,1.5rem);
+      color:var(--cyan); letter-spacing:.14em; text-transform:uppercase;
+      text-align:center; line-height:1.5;
     }
-    #splash p { font-size: .88rem; opacity: .6; text-align: center; max-width: 300px; line-height: 1.5; }
-
+    #splash p { font-size:.85rem; opacity:.6; text-align:center; max-width:290px; line-height:1.5; }
     .rules-box {
-      background: rgba(0,200,255,.06);
-      border: 1px solid rgba(0,200,255,.2);
-      padding: 10px 16px;
-      font-family: var(--mono);
-      font-size: .72rem;
-      line-height: 1.9;
-      width: 100%; max-width: 300px;
+      background:rgba(0,200,255,.05); border:1px solid rgba(0,200,255,.2);
+      padding:10px 14px; font-family:var(--mono); font-size:.7rem;
+      line-height:2; width:100%; max-width:290px;
     }
-    .rules-box span { color: var(--cyan); }
+    .rules-box span { color:var(--cyan); }
+    #splash footer { font-size:.68rem; opacity:.35; font-family:var(--mono); }
 
-    /* ═══════════════════ AR BUTTON ════════════════ */
+    /* ══ AR BUTTON ════════════════════════════════════════════════ */
     #ar-button-wrap {
-      position: fixed; bottom: 40px; left: 50%;
-      transform: translateX(-50%);
-      z-index: 201;
+      position:fixed; bottom:40px; left:50%;
+      transform:translateX(-50%); z-index:201;
     }
     #ar-button-wrap button {
-      background: transparent !important;
-      border: 1.5px solid var(--cyan) !important;
-      color: var(--cyan) !important;
-      font-family: var(--mono) !important;
-      font-size: .82rem !important;
-      letter-spacing: .12em !important;
-      text-transform: uppercase !important;
-      padding: 12px 36px !important;
-      cursor: pointer !important;
-      border-radius: 2px !important;
-      transition: all .2s !important;
+      background:transparent !important; border:1.5px solid var(--cyan) !important;
+      color:var(--cyan) !important; font-family:var(--mono) !important;
+      font-size:.82rem !important; letter-spacing:.12em !important;
+      text-transform:uppercase !important; padding:12px 36px !important;
+      cursor:pointer !important; border-radius:2px !important;
+      transition:all .2s !important;
     }
-    #ar-button-wrap button:hover {
-      background: var(--cyan) !important;
-      color: #000 !important;
-    }
+    #ar-button-wrap button:hover { background:var(--cyan) !important; color:#000 !important; }
 
-    /* ═══════════════════ DOM OVERLAY (inside AR) ══ */
-    #overlay {
-      position: fixed; inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      display: none;
-    }
-    #overlay.active { display: block; }
+    /* ══ OVERLAY ══════════════════════════════════════════════════ */
+    #overlay { position:fixed; inset:0; z-index:1; pointer-events:none; display:none; }
+    #overlay.active { display:block; }
 
+    /* Status bar */
     #status-bar {
-      position: absolute; top: 16px; left: 50%;
-      transform: translateX(-50%);
-      background: var(--panel);
-      border: 1px solid rgba(0,200,255,.3);
-      backdrop-filter: blur(8px);
-      padding: 6px 18px;
-      font-family: var(--mono);
-      font-size: .72rem;
-      color: var(--cyan);
-      letter-spacing: .06em;
-      white-space: nowrap;
+      position:absolute; top:14px; left:50%; transform:translateX(-50%);
+      background:var(--panel); border:1px solid var(--border);
+      backdrop-filter:blur(8px); padding:5px 16px;
+      font-family:var(--mono); font-size:.7rem; color:var(--cyan);
+      letter-spacing:.06em; white-space:nowrap;
     }
 
+    /* ── MODE SELECTOR ─────────────────────────────────────────── */
+    #mode-selector {
+      position:absolute; top:50px; left:50%; transform:translateX(-50%);
+      display:flex; gap:0; pointer-events:all;
+    }
+    .mode-btn {
+      background:var(--panel); border:1px solid var(--border);
+      backdrop-filter:blur(8px); padding:7px 16px;
+      font-family:var(--mono); font-size:.68rem; letter-spacing:.08em;
+      text-transform:uppercase; color:#667788; cursor:pointer;
+      transition:all .2s; user-select:none;
+    }
+    .mode-btn:first-child { border-right:none; }
+    .mode-btn.active { background:rgba(0,200,255,.15); color:var(--cyan); border-color:var(--cyan); }
+
+    /* Next box HUD */
     #hud-next {
-      position: absolute; top: 56px; left: 12px;
-      background: var(--panel);
-      border: 1px solid rgba(0,200,255,.25);
-      backdrop-filter: blur(8px);
-      padding: 8px 12px;
-      font-family: var(--mono);
-      font-size: .68rem;
-      line-height: 1.7;
-      min-width: 140px;
+      position:absolute; top:92px; left:12px;
+      background:var(--panel); border:1px solid var(--border);
+      backdrop-filter:blur(8px); padding:8px 12px;
+      font-family:var(--mono); font-size:.67rem; line-height:1.75; min-width:138px;
     }
-    #hud-next .label { color: var(--cyan); font-size: .6rem; text-transform: uppercase; letter-spacing: .08em; }
-    .color-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+    #hud-next .lbl { color:var(--cyan); font-size:.58rem; text-transform:uppercase; letter-spacing:.08em; }
+    .cdot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; vertical-align:middle; }
 
+    /* Stats */
     #hud-stats {
-      position: absolute; top: 56px; right: 12px;
-      background: var(--panel);
-      border: 1px solid rgba(0,200,255,.25);
-      backdrop-filter: blur(8px);
-      padding: 8px 12px;
-      font-family: var(--mono);
-      font-size: .68rem;
-      line-height: 1.7;
-      text-align: right;
+      position:absolute; top:92px; right:12px;
+      background:var(--panel); border:1px solid var(--border);
+      backdrop-filter:blur(8px); padding:8px 12px;
+      font-family:var(--mono); font-size:.67rem; line-height:1.75; text-align:right;
     }
-    #hud-stats .label { color: var(--cyan); font-size: .6rem; text-transform: uppercase; letter-spacing: .08em; }
+    #hud-stats .lbl { color:var(--cyan); font-size:.58rem; text-transform:uppercase; letter-spacing:.08em; }
 
+    /* Mode hint (below HUDs) */
+    #mode-hint {
+      position:absolute; top:185px; left:50%; transform:translateX(-50%);
+      background:var(--panel); border:1px solid var(--border);
+      backdrop-filter:blur(8px); padding:6px 14px;
+      font-family:var(--mono); font-size:.65rem; color:#889aaa;
+      text-align:center; white-space:nowrap;
+    }
+
+    /* Toast */
     #toast {
-      position: absolute; top: 46%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: var(--panel);
-      border: 1px solid rgba(255,255,255,.15);
-      backdrop-filter: blur(10px);
-      padding: 10px 20px;
-      font-family: var(--mono);
-      font-size: .8rem;
-      text-align: center;
-      min-width: 220px;
-      max-width: 290px;
-      opacity: 0;
-      transition: opacity .3s;
-      line-height: 1.5;
-      pointer-events: none;
+      position:absolute; top:46%; left:50%; transform:translate(-50%,-50%);
+      background:var(--panel); border:1px solid rgba(255,255,255,.1);
+      backdrop-filter:blur(10px); padding:10px 20px;
+      font-family:var(--mono); font-size:.78rem; text-align:center;
+      min-width:220px; max-width:300px;
+      opacity:0; transition:opacity .3s; line-height:1.6; pointer-events:none;
     }
-    #toast.show   { opacity: 1; }
-    #toast.valid  { border-color: var(--green); color: var(--green); }
-    #toast.error  { border-color: var(--red);   color: var(--red);   }
+    #toast.show  { opacity:1; }
+    #toast.valid { border-color:var(--green); color:var(--green); }
+    #toast.error { border-color:var(--red);   color:var(--red);   }
+    #toast.warn  { border-color:var(--yellow);color:var(--yellow);}
 
+    /* Legend */
     #legend {
-      position: absolute; bottom: 14px; left: 0; right: 0;
-      display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;
-      padding: 0 10px;
+      position:absolute; bottom:12px; left:0; right:0;
+      display:flex; gap:5px; justify-content:center; flex-wrap:wrap; padding:0 8px;
     }
     .chip {
-      background: var(--panel);
-      border: 1px solid rgba(0,200,255,.2);
-      backdrop-filter: blur(8px);
-      padding: 4px 10px;
-      font-family: var(--mono);
-      font-size: .62rem;
-      display: flex; align-items: center; gap: 5px;
+      background:var(--panel); border:1px solid var(--border);
+      backdrop-filter:blur(8px); padding:3px 9px;
+      font-family:var(--mono); font-size:.6rem;
+      display:flex; align-items:center; gap:4px;
     }
-    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot { width:7px; height:7px; border-radius:50%; }
 
-    /* Debug bar — always visible, helps diagnose on device */
+    /* Debug */
     #debug {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: rgba(0,0,0,.75);
-      font-family: var(--mono);
-      font-size: .58rem;
-      color: #667788;
-      padding: 4px 8px;
-      z-index: 300;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      position:fixed; bottom:0; left:0; right:0;
+      background:rgba(0,0,0,.7); font-family:var(--mono);
+      font-size:.58rem; color:#556; padding:3px 8px; z-index:300;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
   </style>
 </head>
 <body>
 
-  <!-- SPLASH -->
-  <div id="splash">
-    <div class="logo-ring">📦</div>
-    <h1>AR Cubagem<br/>&amp; Picking</h1>
-    <p>Aponte para o chão e toque para posicionar caixas. O sistema valida o empilhamento automaticamente.</p>
-    <div class="rules-box">
-      <span>🔴 VERMELHO</span> V &gt; X → suporta tudo<br/>
-      <span>🟢 VERDE</span> Y &lt; V &lt; X → suporta 🟢🔵<br/>
-      <span>🔵 AZUL</span> V &lt; Y → só suporta 🔵
-    </div>
-    <p style="font-size:.72rem;opacity:.4">Toque para fechar</p>
+<!-- SPLASH ─────────────────────────────────────────────────────── -->
+<div id="splash">
+  <div class="logo-ring">📦</div>
+  <h1>AR Cubagem<br/>&amp; Picking</h1>
+  <p>Sistema de auxílio à cubagem e picking via WebXR. Três modos de operação.</p>
+  <div class="rules-box">
+    <span>🔴 VERMELHO</span> V &gt; X → suporta tudo<br/>
+    <span>🟢 VERDE</span> Y &lt; V &lt; X → suporta 🟢🔵<br/>
+    <span>🔵 AZUL</span> V &lt; Y → só suporta 🔵<br/>
+    <span>🟫 PALETE</span> base universal (suporta tudo)<br/>
+    <span>🚛 CAÇAMBA</span> valida carga do caminhão
+  </div>
+  <footer>Toque para fechar · Requer Chrome + ARCore</footer>
+</div>
+
+<!-- AR Button ───────────────────────────────────────────────────── -->
+<div id="ar-button-wrap"></div>
+
+<!-- DOM OVERLAY ─────────────────────────────────────────────────── -->
+<div id="overlay">
+
+  <div id="status-bar">🔍 Procurando superfície…</div>
+
+  <!-- Mode selector — tap to switch between the 3 modules -->
+  <div id="mode-selector">
+    <div class="mode-btn active" data-mode="free">📦 Livre</div>
+    <div class="mode-btn"       data-mode="pallet">🟫 Palete</div>
+    <div class="mode-btn"       data-mode="truck">🚛 Caçamba</div>
   </div>
 
-  <!-- AR Button injected here by Three.js -->
-  <div id="ar-button-wrap"></div>
-
-  <!-- DOM Overlay — active during AR session -->
-  <div id="overlay">
-    <div id="status-bar">🔍 Procurando superfície…</div>
-    <div id="hud-next">
-      <div class="label">Próxima caixa</div>
-      <div id="next-info">—</div>
-    </div>
-    <div id="hud-stats">
-      <div class="label">Sessão</div>
-      <div>Caixas: <span id="cnt-boxes">0</span></div>
-      <div>Erros: <span id="cnt-errors" style="color:var(--red)">0</span></div>
-    </div>
-    <div id="toast"></div>
-    <div id="legend">
-      <div class="chip"><div class="dot" style="background:var(--red)"></div>VERMELHO V&gt;X</div>
-      <div class="chip"><div class="dot" style="background:var(--green)"></div>VERDE Y&lt;V&lt;X</div>
-      <div class="chip"><div class="dot" style="background:var(--blue)"></div>AZUL V&lt;Y</div>
-    </div>
+  <div id="hud-next">
+    <div class="lbl">Próxima caixa</div>
+    <div id="next-info">—</div>
   </div>
 
-  <!-- Debug bar -->
-  <div id="debug">Aguardando AR…</div>
+  <div id="hud-stats">
+    <div class="lbl">Sessão</div>
+    <div>Caixas: <span id="cnt-boxes">0</span></div>
+    <div>Erros:  <span id="cnt-errors" style="color:var(--red)">0</span></div>
+    <div id="volume-line" style="display:none">Vol: <span id="cnt-vol">0</span>%</div>
+  </div>
 
-  <script type="importmap">
-  {
-    "imports": {
-      "three":         "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+  <div id="mode-hint">👆 Toque no chão para posicionar</div>
+
+  <div id="toast"></div>
+
+  <div id="legend">
+    <div class="chip"><div class="dot" style="background:var(--red)"></div>V&gt;X</div>
+    <div class="chip"><div class="dot" style="background:var(--green)"></div>Y&lt;V&lt;X</div>
+    <div class="chip"><div class="dot" style="background:var(--blue)"></div>V&lt;Y</div>
+    <div class="chip"><div class="dot" style="background:#8B6914"></div>PALETE</div>
+    <div class="chip"><div class="dot" style="background:var(--yellow)"></div>CAÇAMBA</div>
+  </div>
+
+</div>
+
+<div id="debug">Aguardando AR…</div>
+
+<!-- ══ Import Map ══════════════════════════════════════════════════ -->
+<script type="importmap">
+{
+  "imports": {
+    "three":         "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { ARButton } from 'three/addons/webxr/ARButton.js';
+
+// ─── Debug ─────────────────────────────────────────────────────────
+const dbgEl = document.getElementById('debug');
+function dbg(msg) { dbgEl.textContent = '⬡ ' + msg; console.log('[AR]', msg); }
+
+// ─── Volume thresholds ─────────────────────────────────────────────
+//   Dimension range 0.20–0.50 m → Volume range 0.008–0.125 m³
+const X_VOL = 0.075;   // Red  if V > X
+const Y_VOL = 0.030;   // Blue if V < Y  |  Green otherwise
+
+// Truck bed dimensions (metres)
+const TRUCK_W = 1.4, TRUCK_H = 0.9, TRUCK_D = 2.2;
+const TRUCK_VOLUME = TRUCK_W * TRUCK_H * TRUCK_D;  // ≈ 2.77 m³
+
+// ══════════════════════════════════════════════════════════════════
+// RENDERER
+// ══════════════════════════════════════════════════════════════════
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.xr.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+// ══════════════════════════════════════════════════════════════════
+// AR BUTTON — WebXR hit-test, no legacy APIs
+// ══════════════════════════════════════════════════════════════════
+const overlayEl = document.getElementById('overlay');
+const arBtn = ARButton.createButton(renderer, {
+  requiredFeatures: ['hit-test'],
+  optionalFeatures: ['dom-overlay'],
+  domOverlay:       { root: overlayEl },
+});
+document.getElementById('ar-button-wrap').appendChild(arBtn);
+
+if (!('xr' in navigator)) {
+  dbg('❌ WebXR não disponível — use Chrome no Android');
+} else {
+  navigator.xr.isSessionSupported('immersive-ar').then(ok =>
+    dbg(ok ? '✅ AR suportado — clique START AR' : '❌ AR não suportado neste dispositivo')
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SCENE
+// ══════════════════════════════════════════════════════════════════
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.01, 20);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x223344, 1.4));
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+dirLight.position.set(1, 3, 1);
+scene.add(dirLight);
+scene.add(new THREE.AmbientLight(0x334466, 0.5));
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ══════════════════════════════════════════════════════════════════
+// RETICLE — tracks Hit Test surface
+// ══════════════════════════════════════════════════════════════════
+const reticleGroup = new THREE.Group();
+reticleGroup.visible = false;
+reticleGroup.matrixAutoUpdate = false;
+scene.add(reticleGroup);
+
+const rOuter = new THREE.RingGeometry(0.055, 0.085, 48);
+rOuter.rotateX(-Math.PI / 2);
+reticleGroup.add(new THREE.Mesh(rOuter,
+  new THREE.MeshBasicMaterial({ color:0x00c8ff, side:THREE.DoubleSide })));
+const rInner = new THREE.CircleGeometry(0.022, 24);
+rInner.rotateX(-Math.PI / 2);
+reticleGroup.add(new THREE.Mesh(rInner,
+  new THREE.MeshBasicMaterial({ color:0x00c8ff, transparent:true, opacity:.35 })));
+
+// ══════════════════════════════════════════════════════════════════
+// BOX MANAGER — core logistics logic shared by all modules
+// ══════════════════════════════════════════════════════════════════
+class BoxManager {
+  constructor() {
+    this.boxes      = [];
+    this.errorCount = 0;
+    this.boxCount   = 0;
+  }
+
+  // A. Dynamic random box with volume-based color classification
+  generate() {
+    const r = (a,b) => Math.random()*(b-a)+a;
+    const w = r(0.20,0.50), h = r(0.20,0.50), d = r(0.20,0.50);
+    const v = w*h*d;
+    let colorName, hex, emissive;
+    if      (v > X_VOL) { colorName='red';   hex=0xcc2222; emissive=0x220000; }
+    else if (v > Y_VOL) { colorName='green'; hex=0x22aa44; emissive=0x002210; }
+    else                { colorName='blue';  hex=0x2255dd; emissive=0x001040; }
+    return { w, h, d, v, colorName, hex, emissive };
+  }
+
+  // B. Stacking validation (Picking Module core rule)
+  // topColor can be placed on bottomColor only if rule allows
+  canStack(topColor, bottomColor) {
+    const rules = {
+      red:    ['red','green','blue'],
+      green:  ['green','blue'],
+      blue:   ['blue'],
+      pallet: ['red','green','blue'],   // pallet is universal base
+    };
+    return (rules[bottomColor]||[]).includes(topColor);
+  }
+
+  // C. Place box — worldY is the Y-center of the box
+  place(data, wx, wy, wz) {
+    const geo = new THREE.BoxGeometry(data.w, data.h, data.d);
+    const mat = new THREE.MeshPhongMaterial({
+      color:data.hex, emissive:data.emissive,
+      shininess:55, transparent:true, opacity:0.88,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(wx, wy, wz);
+    mesh.castShadow = mesh.receiveShadow = true;
+    mesh.add(new THREE.LineSegments(
+      new THREE.EdgesGeometry(geo),
+      new THREE.LineBasicMaterial({ color:0xffffff, transparent:true, opacity:.28 })
+    ));
+    mesh.add(this._label(data));
+    scene.add(mesh);
+    this.boxes.push({ mesh, colorName:data.colorName, w:data.w, h:data.h, d:data.d, cx:wx, cy:wy, cz:wz });
+    this.boxCount++;
+    return mesh;
+  }
+
+  // Raycast hit against placed boxes
+  hitTest(raycaster) {
+    const hits = raycaster.intersectObjects(this.boxes.map(b=>b.mesh), false);
+    if (!hits.length) return null;
+    return this.boxes.find(b=>b.mesh===hits[0].object) || null;
+  }
+
+  // Get topmost box in a column — prevents "box inside box" bug
+  getTopmostAt(cx, cz, tol=0.35) {
+    const col = this.boxes.filter(b=>Math.abs(b.cx-cx)<tol && Math.abs(b.cz-cz)<tol);
+    if (!col.length) return null;
+    return col.reduce((top,b)=>(b.cy+b.h/2)>(top.cy+top.h/2)?b:top);
+  }
+
+  // Flash mesh red — visual picking error (Picking Module feedback)
+  flashError(mesh) {
+    const oc = mesh.material.color.clone();
+    const oe = mesh.material.emissive.clone();
+    let i=0;
+    const iv = setInterval(()=>{
+      i++; const odd=i%2===1;
+      mesh.material.color.set(odd?0xff0000:oc);
+      mesh.material.emissive.set(odd?0x660000:oe);
+      if(i>=6){ clearInterval(iv); mesh.material.color.copy(oc); mesh.material.emissive.copy(oe); }
+    }, 120);
+  }
+
+  totalVolume() { return this.boxes.reduce((s,b)=>s+b.w*b.h*b.d, 0); }
+
+  _label(data) {
+    const c=document.createElement('canvas'); c.width=256; c.height=80;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='rgba(0,0,0,.5)'; ctx.fillRect(0,0,256,80);
+    ctx.font='bold 26px monospace'; ctx.fillStyle='#fff'; ctx.textAlign='center';
+    ctx.fillText(data.colorName.toUpperCase(),128,30);
+    ctx.font='17px monospace'; ctx.fillStyle='#aaccff';
+    ctx.fillText(`${(data.w*100).toFixed(0)}x${(data.h*100).toFixed(0)}x${(data.d*100).toFixed(0)}cm`,128,58);
+    const spr=new THREE.Sprite(new THREE.SpriteMaterial({
+      map:new THREE.CanvasTexture(c), transparent:true, opacity:.85
+    }));
+    spr.scale.set(.20,.07,1);
+    spr.position.y=data.h/2+0.045;
+    return spr;
+  }
+}
+
+const bm = new BoxManager();
+
+// ══════════════════════════════════════════════════════════════════
+// ─── MÓDULO DE CUBAGEM — PALETE VIRTUAL ───────────────────────────
+// O operador aponta para o chão e clica para posicionar um palete.
+// A partir daí, as caixas são "empilhadas" sobre o palete
+// seguindo as regras de cubagem logística.
+// ══════════════════════════════════════════════════════════════════
+class PalletModule {
+  constructor() {
+    this.palletMesh  = null;
+    this.palletData  = null;   // { cx, cy_top, cz }
+    this.placed      = false;
+  }
+
+  // Build and place the pallet mesh at world position
+  create(wx, wz) {
+    if (this.palletMesh) { scene.remove(this.palletMesh); }
+
+    const group = new THREE.Group();
+
+    // Platform surface
+    const platGeo = new THREE.BoxGeometry(1.2, 0.10, 0.8);
+    const platMat = new THREE.MeshPhongMaterial({ color:0x8B6914, shininess:20 });
+    const platform = new THREE.Mesh(platGeo, platMat);
+    platform.position.y = 0.105;
+    platform.castShadow = platform.receiveShadow = true;
+    group.add(platform);
+
+    // Plank lines on top
+    for (let i=-0.4; i<=0.4; i+=0.16) {
+      const plankGeo = new THREE.BoxGeometry(1.2, 0.012, 0.04);
+      const plank = new THREE.Mesh(plankGeo, new THREE.MeshPhongMaterial({ color:0x6B4F10 }));
+      plank.position.set(0, 0.161, i);
+      group.add(plank);
+    }
+
+    // Four legs
+    const legGeo = new THREE.BoxGeometry(0.08, 0.10, 0.08);
+    const legMat = new THREE.MeshPhongMaterial({ color:0x6B4F10 });
+    [[-0.5,-0.35],[0.5,-0.35],[-0.5,0.35],[0.5,0.35]].forEach(([lx,lz])=>{
+      const leg = new THREE.Mesh(legGeo, legMat);
+      leg.position.set(lx, 0.05, lz);
+      group.add(leg);
+    });
+
+    // Wireframe outline
+    const outlineGeo = new THREE.BoxGeometry(1.22, 0.175, 0.82);
+    const outline = new THREE.LineSegments(
+      new THREE.EdgesGeometry(outlineGeo),
+      new THREE.LineBasicMaterial({ color:0xffcc44, transparent:true, opacity:.45 })
+    );
+    outline.position.y = 0.088;
+    group.add(outline);
+
+    // Label
+    const spr = this._makeLabel();
+    spr.position.set(0, 0.35, 0);
+    group.add(spr);
+
+    group.position.set(wx, 0, wz);
+    scene.add(group);
+
+    this.palletMesh = group;
+    // cy_top = Y of the top surface of the pallet
+    this.palletData = { cx:wx, cy_top:0.165, cz:wz };
+    this.placed = true;
+    dbg(`Palete criado em (${wx.toFixed(2)}, ${wz.toFixed(2)})`);
+  }
+
+  remove() {
+    if (this.palletMesh) { scene.remove(this.palletMesh); this.palletMesh = null; }
+    this.placed = false;
+    this.palletData = null;
+  }
+
+  // Check if a world position is within the pallet footprint
+  isAbovePallet(wx, wz, tol=0.65) {
+    if (!this.placed) return false;
+    const { cx, cz } = this.palletData;
+    return Math.abs(wx-cx)<tol && Math.abs(wz-cz)<tol;
+  }
+
+  _makeLabel() {
+    const c=document.createElement('canvas'); c.width=256; c.height=64;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,0,256,64);
+    ctx.font='bold 22px monospace'; ctx.fillStyle='#ffcc44'; ctx.textAlign='center';
+    ctx.fillText('PALETE', 128, 24);
+    ctx.font='15px monospace'; ctx.fillStyle='#aaaaaa';
+    ctx.fillText('120x80cm', 128, 48);
+    const spr=new THREE.Sprite(new THREE.SpriteMaterial({
+      map:new THREE.CanvasTexture(c), transparent:true, opacity:.9
+    }));
+    spr.scale.set(.22,.055,1);
+    return spr;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ─── MÓDULO DE PICKING GUIADO — CAÇAMBA DO CAMINHÃO ───────────────
+// Simula o compartimento de carga de um caminhão.
+// Ao detectar uma posição específica (toque no chão), posiciona a
+// caçamba virtualmente. O operador carrega caixas dentro dela.
+// Se uma regra de empilhamento for violada, a caçamba pisca em
+// vermelho e exibe "CARGA INVÁLIDA" — erro de picking alertado.
+// ══════════════════════════════════════════════════════════════════
+class TruckModule {
+  constructor() {
+    this.truckMesh  = null;
+    this.truckData  = null;   // { cx, cy_floor, cz }
+    this.placed     = false;
+    this.boxes      = [];     // boxes loaded into this truck
+    this.isFlashing = false;
+  }
+
+  create(wx, wz) {
+    if (this.truckMesh) scene.remove(this.truckMesh);
+
+    const group = new THREE.Group();
+
+    // Bed floor (solid)
+    const floorGeo = new THREE.BoxGeometry(TRUCK_W, 0.04, TRUCK_D);
+    const floorMat = new THREE.MeshPhongMaterial({ color:0x2a3a4a, shininess:30 });
+    const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+    floorMesh.position.y = 0.02;
+    floorMesh.receiveShadow = true;
+    group.add(floorMesh);
+
+    // Side walls (transparent)
+    const wallMat = new THREE.MeshPhongMaterial({
+      color:0x334455, transparent:true, opacity:0.28, side:THREE.DoubleSide,
+    });
+    // Left wall
+    const lwGeo=new THREE.BoxGeometry(0.04, TRUCK_H, TRUCK_D);
+    const lw=new THREE.Mesh(lwGeo, wallMat); lw.position.set(-TRUCK_W/2+0.02, TRUCK_H/2, 0); group.add(lw);
+    // Right wall
+    const rw=new THREE.Mesh(lwGeo.clone(), wallMat.clone()); rw.position.set(TRUCK_W/2-0.02, TRUCK_H/2, 0); group.add(rw);
+    // Back wall
+    const bwGeo=new THREE.BoxGeometry(TRUCK_W, TRUCK_H, 0.04);
+    const bw=new THREE.Mesh(bwGeo, wallMat.clone()); bw.position.set(0, TRUCK_H/2, -TRUCK_D/2+0.02); group.add(bw);
+
+    // Wireframe outline (bright yellow for visibility in AR)
+    const outlineGeo = new THREE.BoxGeometry(TRUCK_W, TRUCK_H, TRUCK_D);
+    this._edgeMesh = new THREE.LineSegments(
+      new THREE.EdgesGeometry(outlineGeo),
+      new THREE.LineBasicMaterial({ color:0xffd43b, transparent:true, opacity:.7 })
+    );
+    this._edgeMesh.position.y = TRUCK_H/2;
+    group.add(this._edgeMesh);
+
+    // Corner pillars for visual anchoring
+    const pillarGeo = new THREE.BoxGeometry(0.06,TRUCK_H,0.06);
+    const pillarMat = new THREE.MeshPhongMaterial({ color:0xffd43b, transparent:true, opacity:.5 });
+    [[-1,1],[-1,-1],[1,1],[1,-1]].forEach(([sx,sz])=>{
+      const p=new THREE.Mesh(pillarGeo,pillarMat.clone());
+      p.position.set(sx*(TRUCK_W/2-0.03), TRUCK_H/2, sz*(TRUCK_D/2-0.03));
+      group.add(p);
+    });
+
+    // Label
+    const spr = this._makeLabel();
+    spr.position.set(0, TRUCK_H+0.12, 0);
+    group.add(spr);
+
+    // Open front indicator arrows
+    const arrowMat = new THREE.LineBasicMaterial({ color:0x00c8ff, transparent:true, opacity:.55 });
+    for (let z=-0.4; z<=0.4; z+=0.4) {
+      const pts=[new THREE.Vector3(0,0.08,TRUCK_D/2), new THREE.Vector3(0,0.08,TRUCK_D/2+0.18)];
+      group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), arrowMat));
+    }
+
+    group.position.set(wx, 0, wz);
+    scene.add(group);
+
+    this.truckMesh = group;
+    // cy_floor = Y of the truck bed surface
+    this.truckData = { cx:wx, cy_floor:0.04, cz:wz };
+    this.placed    = true;
+    this.boxes     = [];
+    dbg(`Caçamba criada em (${wx.toFixed(2)}, ${wz.toFixed(2)})`);
+  }
+
+  remove() {
+    if (this.truckMesh) { scene.remove(this.truckMesh); this.truckMesh=null; }
+    this.placed = false; this.truckData=null; this.boxes=[];
+  }
+
+  // Is a world position inside the truck footprint?
+  isInsideTruck(wx, wz) {
+    if (!this.placed) return false;
+    const { cx, cz } = this.truckData;
+    return Math.abs(wx-cx)<TRUCK_W/2+0.1 && Math.abs(wz-cz)<TRUCK_D/2+0.1;
+  }
+
+  // Flash truck bed yellow→red to signal invalid stacking
+  flashInvalid(callback) {
+    if (this.isFlashing || !this._edgeMesh) return;
+    this.isFlashing = true;
+    const origColor = 0xffd43b;
+    let i=0;
+    const iv=setInterval(()=>{
+      i++;
+      this._edgeMesh.material.color.set(i%2===1 ? 0xff0000 : origColor);
+      if(i>=8){ clearInterval(iv); this._edgeMesh.material.color.set(origColor); this.isFlashing=false; callback?.(); }
+    }, 110);
+  }
+
+  // Flash green for valid full load
+  flashValid() {
+    if (!this._edgeMesh) return;
+    let i=0;
+    const iv=setInterval(()=>{
+      i++;
+      this._edgeMesh.material.color.set(i%2===1?0x00ff44:0xffd43b);
+      if(i>=6){ clearInterval(iv); this._edgeMesh.material.color.set(0xffd43b); }
+    }, 120);
+  }
+
+  loadedVolume() { return this.boxes.reduce((s,b)=>s+b.v,0); }
+  fillPercent()  { return Math.min(100, (this.loadedVolume()/TRUCK_VOLUME)*100); }
+
+  _makeLabel() {
+    const c=document.createElement('canvas'); c.width=300; c.height=80;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(0,0,300,80);
+    ctx.font='bold 22px monospace'; ctx.fillStyle='#ffd43b'; ctx.textAlign='center';
+    ctx.fillText('CAÇAMBA', 150, 26);
+    ctx.font='15px monospace'; ctx.fillStyle='#aaaaaa';
+    ctx.fillText(`${(TRUCK_W*100).toFixed(0)}x${(TRUCK_H*100).toFixed(0)}x${(TRUCK_D*100).toFixed(0)}cm`, 150, 50);
+    ctx.fillText('← ENTRADA ABERTA →', 150, 70);
+    const spr=new THREE.Sprite(new THREE.SpriteMaterial({
+      map:new THREE.CanvasTexture(c), transparent:true, opacity:.9
+    }));
+    spr.scale.set(.28,.075,1);
+    return spr;
+  }
+}
+
+const palletMod = new PalletModule();
+const truckMod  = new TruckModule();
+
+// ══════════════════════════════════════════════════════════════════
+// HUD & TOAST HELPERS
+// ══════════════════════════════════════════════════════════════════
+let nextBox = bm.generate();
+refreshHUD();
+
+function refreshHUD() {
+  const css = { red:'#ff3c3c', green:'#39ff6a', blue:'#3a8fff' };
+  document.getElementById('next-info').innerHTML =
+    `<span class="cdot" style="background:${css[nextBox.colorName]}"></span>`
+    +`<b>${nextBox.colorName.toUpperCase()}</b><br/>`
+    +`<span style="font-size:.62rem;opacity:.7;">`
+    +`${(nextBox.w*100).toFixed(0)}x${(nextBox.h*100).toFixed(0)}x${(nextBox.d*100).toFixed(0)}cm`
+    +` V=${(nextBox.v*1e6).toFixed(0)}cc</span>`;
+}
+function updateStats() {
+  document.getElementById('cnt-boxes').textContent  = bm.boxCount;
+  document.getElementById('cnt-errors').textContent = bm.errorCount;
+  if (currentMode==='truck' && truckMod.placed) {
+    document.getElementById('volume-line').style.display='block';
+    document.getElementById('cnt-vol').textContent = truckMod.fillPercent().toFixed(0);
+  } else {
+    document.getElementById('volume-line').style.display='none';
+  }
+}
+
+let toastTimer;
+function toast(type, msg) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className=`show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ el.className=''; }, 2600);
+}
+
+const statusEl   = document.getElementById('status-bar');
+const modeHintEl = document.getElementById('mode-hint');
+function setStatus(msg) { statusEl.textContent=msg; }
+
+// ══════════════════════════════════════════════════════════════════
+// MODE SWITCHER
+// ══════════════════════════════════════════════════════════════════
+let currentMode = 'free';   // 'free' | 'pallet' | 'truck'
+const modeHints = {
+  free:   '👆 Toque no chão para posicionar caixa',
+  pallet: '👆 1º toque: posiciona palete  2º toque: empilha caixa',
+  truck:  '👆 1º toque: posiciona caçamba  2º toque: carrega caixa',
+};
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentMode = btn.dataset.mode;
+    document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    modeHintEl.textContent = modeHints[currentMode];
+    // Reset structures when switching modes
+    palletMod.remove();
+    truckMod.remove();
+    bm.boxes = []; bm.boxCount = 0; bm.errorCount = 0;
+    updateStats();
+    dbg(`Modo: ${currentMode}`);
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+// HIT TEST SOURCE
+// ══════════════════════════════════════════════════════════════════
+let hitTestSource = null;
+
+renderer.xr.addEventListener('sessionstart', async () => {
+  dbg('✅ Sessão AR iniciada');
+  overlayEl.classList.add('active');
+  document.getElementById('splash').classList.add('hidden');
+  modeHintEl.textContent = modeHints[currentMode];
+
+  const session = renderer.xr.getSession();
+  try {
+    const viewerSpace = await session.requestReferenceSpace('viewer');
+    hitTestSource     = await session.requestHitTestSource({ space: viewerSpace });
+    dbg('✅ Hit-test ativo — aponte para o chão');
+  } catch (err) {
+    dbg(`❌ Hit-test erro: ${err.message}`);
+  }
+
+  session.addEventListener('end', () => {
+    hitTestSource=null; reticleGroup.visible=false;
+    overlayEl.classList.remove('active');
+    dbg('Sessão encerrada');
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════
+// PLACEMENT HANDLER — routes logic based on active module
+// ══════════════════════════════════════════════════════════════════
+function handlePlacement() {
+  if (!reticleGroup.visible) {
+    toast('warn', '⚠️ Aponte para uma superfície plana.');
+    return;
+  }
+
+  // Floor position from reticle
+  const floorPos = new THREE.Vector3().setFromMatrixPosition(reticleGroup.matrix);
+
+  // Ray from XR camera
+  const xrCam  = renderer.xr.getCamera();
+  const origin = new THREE.Vector3().setFromMatrixPosition(xrCam.matrixWorld);
+  const dir    = new THREE.Vector3(0,0,-1).applyQuaternion(xrCam.quaternion).normalize();
+  const ray    = new THREE.Raycaster(origin, dir, 0.01, 15);
+
+  if (currentMode === 'free') {
+    // ── FREE MODE: place boxes anywhere, validate stacking on hit ─
+    handleFree(ray, floorPos);
+
+  } else if (currentMode === 'pallet') {
+    // ── PALLET MODULE ─────────────────────────────────────────────
+    if (!palletMod.placed) {
+      // First tap → place the pallet on the floor
+      palletMod.create(floorPos.x, floorPos.z);
+      toast('valid', '🟫 PALETE POSICIONADO\nToque sobre o palete para carregar caixas');
+      dbg('Palete criado');
+    } else {
+      handlePallet(ray, floorPos);
+    }
+
+  } else if (currentMode === 'truck') {
+    // ── TRUCK BED / CAÇAMBA MODULE ─────────────────────────────────
+    if (!truckMod.placed) {
+      // First tap → place the truck bed on the floor
+      truckMod.create(floorPos.x, floorPos.z);
+      toast('valid', '🚛 CAÇAMBA POSICIONADA\nToque dentro da caçamba para carregar caixas');
+      dbg('Caçamba criada');
+    } else {
+      handleTruck(ray, floorPos);
     }
   }
-  </script>
 
-  <script type="module">
-    import * as THREE from 'three';
-    import { ARButton } from 'three/addons/webxr/ARButton.js';
+  updateStats();
+}
 
-    // ─── Debug helper ──────────────────────────────────────────────
-    const dbgEl = document.getElementById('debug');
-    function dbg(msg) {
-      dbgEl.textContent = '⬡ ' + msg;
-      console.log('[AR]', msg);
-    }
-
-    // ─── Volume thresholds ─────────────────────────────────────────
-    //   Dimension range: 0.20–0.50 m  →  Volume range: 0.008–0.125 m³
-    //   X = 0.075 → Red  if V > X
-    //   Y = 0.030 → Blue if V < Y  |  Green otherwise
-    const X = 0.075;
-    const Y = 0.030;
-
-    // ══════════════════════════════════════════════════════════════
-    // RENDERER
-    // ══════════════════════════════════════════════════════════════
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.xr.enabled = true;
-    document.body.appendChild(renderer.domElement);
-
-    // ══════════════════════════════════════════════════════════════
-    // AR BUTTON — WebXR hit-test only, NO legacy APIs
-    // ══════════════════════════════════════════════════════════════
-    const overlayEl = document.getElementById('overlay');
-    const arBtn = ARButton.createButton(renderer, {
-      requiredFeatures:  ['hit-test'],
-      optionalFeatures:  ['dom-overlay'],
-      domOverlay:        { root: overlayEl },
-    });
-    document.getElementById('ar-button-wrap').appendChild(arBtn);
-
-    // Check WebXR support
-    if (!('xr' in navigator)) {
-      dbg('❌ WebXR não disponível — use Chrome no Android');
+// ─── FREE MODE ─────────────────────────────────────────────────────
+function handleFree(ray, floorPos) {
+  const hitBox = bm.hitTest(ray);
+  if (hitBox) {
+    const target = bm.getTopmostAt(hitBox.cx, hitBox.cz) || hitBox;
+    if (bm.canStack(nextBox.colorName, target.colorName)) {
+      const wy = target.cy + target.h/2 + nextBox.h/2;
+      bm.place(nextBox, target.cx, wy, target.cz);
+      toast('valid', `✓ EMPILHADO\n${nextBox.colorName.toUpperCase()} → ${target.colorName.toUpperCase()}`);
     } else {
-      navigator.xr.isSessionSupported('immersive-ar').then(ok => {
-        dbg(ok ? '✅ AR suportado — clique START AR' : '❌ AR não suportado neste dispositivo');
-      });
+      bm.errorCount++; bm.flashError(target.mesh);
+      toast('error', `✗ ERRO\n${nextBox.colorName.toUpperCase()} não pode sobre ${target.colorName.toUpperCase()}`);
+    }
+  } else {
+    bm.place(nextBox, floorPos.x, floorPos.y+nextBox.h/2, floorPos.z);
+    toast('valid', `✓ ${nextBox.colorName.toUpperCase()} no chão`);
+  }
+  nextBox=bm.generate(); refreshHUD();
+}
+
+// ─── PALLET MODULE ─────────────────────────────────────────────────
+// Módulo de Cubagem Virtual: caixas empilhadas sobre o palete
+function handlePallet(ray, floorPos) {
+  const pd = palletMod.palletData;
+
+  // Check if ray hits an existing box on the pallet
+  const hitBox = bm.hitTest(ray);
+  if (hitBox) {
+    // Stacking on an existing box
+    const target = bm.getTopmostAt(hitBox.cx, hitBox.cz) || hitBox;
+
+    // Validate the box is actually on/near this pallet
+    if (!palletMod.isAbovePallet(target.cx, target.cz)) {
+      toast('warn', '⚠️ Esta caixa não está neste palete.');
+      return;
     }
 
-    // ══════════════════════════════════════════════════════════════
-    // SCENE
-    // ══════════════════════════════════════════════════════════════
-    const scene  = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x223344, 1.4));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
-    dirLight.position.set(1, 3, 1);
-    scene.add(dirLight);
-    scene.add(new THREE.AmbientLight(0x334466, 0.5));
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    // ══════════════════════════════════════════════════════════════
-    // RETICLE — tracks Hit Test surface (Módulo Cubagem)
-    // ══════════════════════════════════════════════════════════════
-    const reticleGroup = new THREE.Group();
-    reticleGroup.visible = false;
-    reticleGroup.matrixAutoUpdate = false;
-    scene.add(reticleGroup);
-
-    const outerGeo = new THREE.RingGeometry(0.055, 0.085, 48);
-    outerGeo.rotateX(-Math.PI / 2);
-    reticleGroup.add(new THREE.Mesh(outerGeo,
-      new THREE.MeshBasicMaterial({ color: 0x00c8ff, side: THREE.DoubleSide })));
-
-    const innerGeo = new THREE.CircleGeometry(0.022, 24);
-    innerGeo.rotateX(-Math.PI / 2);
-    reticleGroup.add(new THREE.Mesh(innerGeo,
-      new THREE.MeshBasicMaterial({ color: 0x00c8ff, transparent: true, opacity: .35 })));
-
-    // ══════════════════════════════════════════════════════════════
-    // BOX MANAGER — Cubagem + Picking logic
-    // ══════════════════════════════════════════════════════════════
-    class BoxManager {
-      constructor() {
-        this.boxes      = [];
-        this.errorCount = 0;
-        this.boxCount   = 0;
+    if (bm.canStack(nextBox.colorName, target.colorName)) {
+      const wy = target.cy + target.h/2 + nextBox.h/2;
+      bm.place(nextBox, target.cx, wy, target.cz);
+      toast('valid', `✓ CUBAGEM +1\n${nextBox.colorName.toUpperCase()} sobre ${target.colorName.toUpperCase()}`);
+      dbg(`Empilhou ${nextBox.colorName} sobre ${target.colorName} no palete`);
+    } else {
+      bm.errorCount++; bm.flashError(target.mesh);
+      // Also gently flash the pallet
+      if (palletMod.palletMesh) {
+        palletMod.palletMesh.traverse(c=>{ if(c.isMesh&&c.material){ const oc=c.material.color.clone(); c.material.color.set(0xff2200); setTimeout(()=>c.material.color.copy(oc),350); } });
       }
+      toast('error', `✗ ERRO DE CUBAGEM\n${nextBox.colorName.toUpperCase()} NÃO pode sobre ${target.colorName.toUpperCase()}`);
+    }
+  } else {
+    // Place directly on pallet surface
+    // Centre the box on the pallet (small random offset for realism)
+    const ox = (Math.random()-0.5)*0.3;
+    const oz = (Math.random()-0.5)*0.4;
+    const wx = pd.cx + ox;
+    const wy = pd.cy_top + nextBox.h/2;
+    const wz = pd.cz + oz;
 
-      // A. Dynamic generation with volume-based color classification
-      generate() {
-        const r = (a, b) => Math.random() * (b - a) + a;
-        const w = r(0.20, 0.50);
-        const h = r(0.20, 0.50);
-        const d = r(0.20, 0.50);
-        const v = w * h * d;
-        let colorName, hex, emissive;
-        if      (v > X) { colorName = 'red';   hex = 0xcc2222; emissive = 0x220000; }
-        else if (v > Y) { colorName = 'green'; hex = 0x22aa44; emissive = 0x002210; }
-        else            { colorName = 'blue';  hex = 0x2255dd; emissive = 0x001040; }
-        return { w, h, d, v, colorName, hex, emissive };
-      }
-
-      // B. Stacking rules (Módulo Picking Guiado)
-      // Returns true if topColor can sit on bottomColor
-      canStack(topColor, bottomColor) {
-        const rules = {
-          red:   ['red', 'green', 'blue'],
-          green: ['green', 'blue'],
-          blue:  ['blue'],
-        };
-        return (rules[bottomColor] || []).includes(topColor);
-      }
-
-      // C. Place box — worldY is the Y center of the box
-      place(data, worldX, worldY, worldZ) {
-        const geo = new THREE.BoxGeometry(data.w, data.h, data.d);
-        const mat = new THREE.MeshPhongMaterial({
-          color: data.hex, emissive: data.emissive,
-          shininess: 55, transparent: true, opacity: 0.88,
-        });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(worldX, worldY, worldZ);
-        mesh.castShadow = mesh.receiveShadow = true;
-
-        // Wireframe edges
-        mesh.add(new THREE.LineSegments(
-          new THREE.EdgesGeometry(geo),
-          new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .28 })
-        ));
-
-        // Canvas label
-        mesh.add(this._label(data));
-        scene.add(mesh);
-
-        this.boxes.push({
-          mesh,
-          colorName: data.colorName,
-          w: data.w, h: data.h, d: data.d,
-          cx: worldX, cy: worldY, cz: worldZ,
-        });
-        this.boxCount++;
-        return mesh;
-      }
-
-      // Raycast against placed boxes
-      hitTest(raycaster) {
-        const meshes = this.boxes.map(b => b.mesh);
-        const hits   = raycaster.intersectObjects(meshes, false);
-        if (!hits.length) return null;
-        return this.boxes.find(b => b.mesh === hits[0].object) || null;
-      }
-
-      // Find the topmost box in the column above a given X/Z position.
-      // Fixes the "box inside box" bug: even if the ray hits a middle box,
-      // we always stack on the highest one in that column.
-      getTopmostAt(cx, cz, tolerance = 0.35) {
-        const column = this.boxes.filter(b => {
-          return Math.abs(b.cx - cx) < tolerance && Math.abs(b.cz - cz) < tolerance;
-        });
-        if (!column.length) return null;
-        return column.reduce((top, b) =>
-          (b.cy + b.h / 2) > (top.cy + top.h / 2) ? b : top
-        );
-      }
-
-      // Flash box red → picking error visual feedback
-      flashError(mesh) {
-        const oc = mesh.material.color.clone();
-        const oe = mesh.material.emissive.clone();
-        let i = 0;
-        const iv = setInterval(() => {
-          i++;
-          const odd = i % 2 === 1;
-          mesh.material.color.set(odd ? 0xff0000 : oc);
-          mesh.material.emissive.set(odd ? 0x660000 : oe);
-          if (i >= 6) {
-            clearInterval(iv);
-            mesh.material.color.copy(oc);
-            mesh.material.emissive.copy(oe);
-          }
-        }, 120);
-      }
-
-      _label(data) {
-        const c   = document.createElement('canvas');
-        c.width   = 256; c.height = 80;
-        const ctx = c.getContext('2d');
-        ctx.fillStyle = 'rgba(0,0,0,.5)';
-        ctx.fillRect(0, 0, 256, 80);
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 26px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(data.colorName.toUpperCase(), 128, 30);
-        ctx.font = '17px monospace';
-        ctx.fillStyle = '#aaccff';
-        ctx.fillText(
-          `${(data.w*100).toFixed(0)}x${(data.h*100).toFixed(0)}x${(data.d*100).toFixed(0)}cm`,
-          128, 58
-        );
-        const spr = new THREE.Sprite(new THREE.SpriteMaterial({
-          map: new THREE.CanvasTexture(c), transparent: true, opacity: .85,
-        }));
-        spr.scale.set(.20, .07, 1);
-        spr.position.y = data.h / 2 + 0.045;
-        return spr;
-      }
+    // Check pallet footprint
+    if (!palletMod.isAbovePallet(wx, wz, 0.55)) {
+      toast('warn', '⚠️ Aponte mais para o centro do palete.');
+      return;
     }
 
-    const bm = new BoxManager();
-    let nextBox = bm.generate();
-    refreshHUD();
+    bm.place(nextBox, wx, wy, wz);
+    toast('valid', `✓ CAIXA NO PALETE\n${nextBox.colorName.toUpperCase()} | base`);
+    dbg(`Colocou ${nextBox.colorName} no palete`);
+  }
 
-    function refreshHUD() {
-      const colorCSS = { red: '#ff3c3c', green: '#39ff6a', blue: '#3a8fff' };
-      document.getElementById('next-info').innerHTML =
-        `<span class="color-dot" style="background:${colorCSS[nextBox.colorName]}"></span>`
-        + `<b>${nextBox.colorName.toUpperCase()}</b><br/>`
-        + `<span style="font-size:.63rem;opacity:.7;">`
-        + `${(nextBox.w*100).toFixed(0)}x${(nextBox.h*100).toFixed(0)}x${(nextBox.d*100).toFixed(0)}cm`
-        + ` V=${(nextBox.v*1e6).toFixed(0)}cc</span>`;
+  nextBox=bm.generate(); refreshHUD();
+}
+
+// ─── TRUCK / CAÇAMBA MODULE ─────────────────────────────────────────
+// Módulo de Picking Guiado: simula a caçamba do caminhão.
+// Destaca quando não for possível empilhar (regra de picking violada).
+function handleTruck(ray, floorPos) {
+  const td = truckMod.truckData;
+
+  // Check capacity
+  if (truckMod.fillPercent() >= 100) {
+    toast('warn', '🚛 CAÇAMBA CHEIA\nVolume máximo atingido!');
+    return;
+  }
+
+  // Check if ray hits a box already loaded in the truck
+  const hitBox = bm.hitTest(ray);
+  if (hitBox) {
+    const target = bm.getTopmostAt(hitBox.cx, hitBox.cz) || hitBox;
+
+    // Confirm box is inside the truck
+    if (!truckMod.isInsideTruck(target.cx, target.cz)) {
+      toast('warn', '⚠️ Esta caixa não está na caçamba.');
+      return;
     }
 
-    function updateStats() {
-      document.getElementById('cnt-boxes').textContent  = bm.boxCount;
-      document.getElementById('cnt-errors').textContent = bm.errorCount;
-    }
-
-    let toastTimer;
-    function toast(type, msg) {
-      const el = document.getElementById('toast');
-      el.textContent = msg;
-      el.className   = `show ${type}`;
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => { el.className = ''; }, 2400);
-    }
-
-    // ══════════════════════════════════════════════════════════════
-    // HIT TEST SOURCE
-    // ══════════════════════════════════════════════════════════════
-    let hitTestSource = null;
-
-    renderer.xr.addEventListener('sessionstart', async () => {
-      dbg('✅ Sessão AR iniciada — inicializando hit-test…');
-      overlayEl.classList.add('active');
-      document.getElementById('splash').classList.add('hidden');
-
-      const session = renderer.xr.getSession();
-
-      try {
-        const viewerSpace = await session.requestReferenceSpace('viewer');
-        hitTestSource     = await session.requestHitTestSource({ space: viewerSpace });
-        dbg('✅ Hit-test ativo — aponte para o chão');
-      } catch (err) {
-        dbg(`❌ Hit-test erro: ${err.message}`);
-      }
-
-      session.addEventListener('end', () => {
-        hitTestSource = null;
-        reticleGroup.visible = false;
-        overlayEl.classList.remove('active');
-        dbg('Sessão encerrada');
-      });
-    });
-
-    // ══════════════════════════════════════════════════════════════
-    // PLACEMENT HANDLER
-    // Called by controller 'select' AND touchend fallback
-    // ══════════════════════════════════════════════════════════════
-    function handlePlacement() {
-      if (!reticleGroup.visible) {
-        toast('error', '⚠️ Aponte para uma superfície plana antes de tocar.');
+    if (bm.canStack(nextBox.colorName, target.colorName)) {
+      const wy = target.cy + target.h/2 + nextBox.h/2;
+      // Clamp within truck height
+      if (wy + nextBox.h/2 > td.cy_floor + TRUCK_H + 0.05) {
+        toast('warn', '⚛️ ALTURA EXCEDIDA\nEsta pilha atingiu o teto da caçamba.');
         return;
       }
+      bm.place(nextBox, target.cx, wy, target.cz);
+      truckMod.boxes.push(nextBox);
+      const pct = truckMod.fillPercent().toFixed(0);
+      toast('valid', `✓ CARGA ACEITA\n${nextBox.colorName.toUpperCase()} → ${target.colorName.toUpperCase()}\nOcupação: ${pct}%`);
+      if (pct >= 80) truckMod.flashValid();
+    } else {
+      // ── PICKING ERROR: invalid stacking in truck ──────────────
+      // Flash the truck bed red — operator alert
+      bm.errorCount++;
+      truckMod.flashInvalid(()=>{});
+      bm.flashError(target.mesh);
+      toast('error',
+        `✗ CARGA INVÁLIDA\n${nextBox.colorName.toUpperCase()} NÃO pode sobre ${target.colorName.toUpperCase()}\nRegra de empilhamento violada!`);
+      dbg(`PICKING ERRO: ${nextBox.colorName} sobre ${target.colorName}`);
+    }
+  } else {
+    // Place on truck floor
+    const ox = (Math.random()-0.5)*(TRUCK_W-nextBox.w-0.1);
+    const oz = (Math.random()-0.5)*(TRUCK_D-nextBox.d-0.1);
+    const wx = td.cx + ox;
+    const wy = td.cy_floor + nextBox.h/2;
+    const wz = td.cz + oz;
 
-      // Ray from XR camera
-      const xrCam  = renderer.xr.getCamera();
-      const origin = new THREE.Vector3().setFromMatrixPosition(xrCam.matrixWorld);
-      const dir    = new THREE.Vector3(0, 0, -1)
-        .applyQuaternion(xrCam.quaternion)
-        .normalize();
-      const ray    = new THREE.Raycaster(origin, dir, 0.01, 15);
-
-      // Check if ray hits a placed box
-      const hitBox = bm.hitTest(ray);
-
-      if (hitBox) {
-        // ── PICKING MODULE: validate stacking rule ───────────────
-        // Always use the TOPMOST box in the column to avoid clipping.
-        // The ray may hit any box in the stack; getTopmostAt ensures
-        // the new box lands on the actual top surface, never inside another.
-        const topBox = bm.getTopmostAt(hitBox.cx, hitBox.cz);
-        const target = topBox || hitBox;
-
-        if (bm.canStack(nextBox.colorName, target.colorName)) {
-          const topY = target.cy + target.h / 2 + nextBox.h / 2;
-          bm.place(nextBox, target.cx, topY, target.cz);
-          toast('valid',
-            `✓ EMPILHADO\n${nextBox.colorName.toUpperCase()} → ${target.colorName.toUpperCase()}`);
-          dbg(`Empilhou ${nextBox.colorName} sobre ${target.colorName}`);
-        } else {
-          bm.errorCount++;
-          bm.flashError(target.mesh);
-          toast('error',
-            `✗ ERRO DE PICKING\n${nextBox.colorName.toUpperCase()} NÃO pode ir sobre ${target.colorName.toUpperCase()}`);
-          dbg(`ERRO: ${nextBox.colorName} não pode sobre ${target.colorName}`);
-        }
-      } else {
-        // ── CUBING MODULE: place on real floor from hit-test pose ─
-        const pos = new THREE.Vector3().setFromMatrixPosition(reticleGroup.matrix);
-        bm.place(nextBox, pos.x, pos.y + nextBox.h / 2, pos.z);
-        toast('valid', `✓ POSICIONADO\n${nextBox.colorName.toUpperCase()} no chão`);
-        dbg(`Posicionou ${nextBox.colorName} no chão`);
-      }
-
-      updateStats();
-      nextBox = bm.generate();
-      refreshHUD();
+    if (!truckMod.isInsideTruck(wx, wz)) {
+      toast('warn', '⚠️ Aponte para dentro da caçamba.');
+      return;
     }
 
-    // Primary: XR controller select event
-    const controller = renderer.xr.getController(0);
-    controller.addEventListener('select', handlePlacement);
-    scene.add(controller);
+    bm.place(nextBox, wx, wy, wz);
+    truckMod.boxes.push(nextBox);
+    const pct = truckMod.fillPercent().toFixed(0);
+    toast('valid', `✓ CARGA ACEITA\n${nextBox.colorName.toUpperCase()} no piso\nOcupação: ${pct}%`);
+    dbg(`Carregou ${nextBox.colorName} na caçamba (${pct}% cheio)`);
+  }
 
-    // Fallback: touchend on canvas (broader device compatibility)
-    renderer.domElement.addEventListener('touchend', (e) => {
-      if (renderer.xr.isPresenting) {
-        e.preventDefault();
-        handlePlacement();
-      }
-    }, { passive: false });
+  nextBox=bm.generate(); refreshHUD();
+}
 
-    // ══════════════════════════════════════════════════════════════
-    // RENDER LOOP
-    // ══════════════════════════════════════════════════════════════
-    const statusEl  = document.getElementById('status-bar');
-    let surfaceFound = false;
+// ══════════════════════════════════════════════════════════════════
+// INPUT: XR controller select + touchend fallback
+// ══════════════════════════════════════════════════════════════════
+const controller = renderer.xr.getController(0);
+controller.addEventListener('select', handlePlacement);
+scene.add(controller);
 
-    renderer.setAnimationLoop((timestamp, frame) => {
-      if (frame && hitTestSource) {
-        const refSpace = renderer.xr.getReferenceSpace();
-        if (refSpace) {
-          const results = frame.getHitTestResults(hitTestSource);
-          if (results.length > 0) {
-            const pose = results[0].getPose(refSpace);
-            if (pose) {
-              reticleGroup.visible = true;
-              reticleGroup.matrix.fromArray(pose.transform.matrix);
-              // Subtle pulse
-              const s = 1 + 0.06 * Math.sin(timestamp * 0.005);
-              reticleGroup.scale.set(s, 1, s);
+renderer.domElement.addEventListener('touchend', (e)=>{
+  if (renderer.xr.isPresenting) { e.preventDefault(); handlePlacement(); }
+}, { passive:false });
 
-              if (!surfaceFound) {
-                surfaceFound = true;
-                statusEl.textContent = '👆 Toque para posicionar a caixa';
-                dbg('Superfície detectada!');
-              }
-            }
-          } else {
-            reticleGroup.visible = false;
-            if (surfaceFound) {
-              surfaceFound = false;
-              statusEl.textContent = '🔍 Procurando superfície…';
-            }
+// ══════════════════════════════════════════════════════════════════
+// RENDER LOOP
+// ══════════════════════════════════════════════════════════════════
+let surfaceFound = false;
+
+renderer.setAnimationLoop((timestamp, frame)=>{
+  if (frame && hitTestSource) {
+    const refSpace = renderer.xr.getReferenceSpace();
+    if (refSpace) {
+      const results = frame.getHitTestResults(hitTestSource);
+      if (results.length > 0) {
+        const pose = results[0].getPose(refSpace);
+        if (pose) {
+          reticleGroup.visible = true;
+          reticleGroup.matrix.fromArray(pose.transform.matrix);
+          const s = 1+0.06*Math.sin(timestamp*0.005);
+          reticleGroup.scale.set(s,1,s);
+          if (!surfaceFound) {
+            surfaceFound=true;
+            setStatus('👆 Toque para posicionar');
+            dbg('Superfície detectada!');
           }
         }
+      } else {
+        reticleGroup.visible=false;
+        if (surfaceFound) { surfaceFound=false; setStatus('🔍 Procurando superfície…'); }
       }
+    }
+  }
+  renderer.render(scene, camera);
+});
 
-      renderer.render(scene, camera);
-    });
-
-    // ──────────────────────────────────────────────────────────────
-    // SPLASH DISMISS
-    // ──────────────────────────────────────────────────────────────
-    document.getElementById('splash').addEventListener('click', () => {
-      document.getElementById('splash').classList.add('hidden');
-    });
-
-  </script>
+// ──────────────────────────────────────────────────────────────────
+// SPLASH DISMISS
+// ──────────────────────────────────────────────────────────────────
+document.getElementById('splash').addEventListener('click', ()=>{
+  document.getElementById('splash').classList.add('hidden');
+});
+</script>
 </body>
 </html>
