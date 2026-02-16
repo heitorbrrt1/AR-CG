@@ -416,6 +416,19 @@
         return this.boxes.find(b => b.mesh === hits[0].object) || null;
       }
 
+      // Find the topmost box in the column above a given X/Z position.
+      // Fixes the "box inside box" bug: even if the ray hits a middle box,
+      // we always stack on the highest one in that column.
+      getTopmostAt(cx, cz, tolerance = 0.35) {
+        const column = this.boxes.filter(b => {
+          return Math.abs(b.cx - cx) < tolerance && Math.abs(b.cz - cz) < tolerance;
+        });
+        if (!column.length) return null;
+        return column.reduce((top, b) =>
+          (b.cy + b.h / 2) > (top.cy + top.h / 2) ? b : top
+        );
+      }
+
       // Flash box red → picking error visual feedback
       flashError(mesh) {
         const oc = mesh.material.color.clone();
@@ -538,18 +551,24 @@
 
       if (hitBox) {
         // ── PICKING MODULE: validate stacking rule ───────────────
-        if (bm.canStack(nextBox.colorName, hitBox.colorName)) {
-          const topY = hitBox.cy + hitBox.h / 2 + nextBox.h / 2;
-          bm.place(nextBox, hitBox.cx, topY, hitBox.cz);
+        // Always use the TOPMOST box in the column to avoid clipping.
+        // The ray may hit any box in the stack; getTopmostAt ensures
+        // the new box lands on the actual top surface, never inside another.
+        const topBox = bm.getTopmostAt(hitBox.cx, hitBox.cz);
+        const target = topBox || hitBox;
+
+        if (bm.canStack(nextBox.colorName, target.colorName)) {
+          const topY = target.cy + target.h / 2 + nextBox.h / 2;
+          bm.place(nextBox, target.cx, topY, target.cz);
           toast('valid',
-            `✓ EMPILHADO\n${nextBox.colorName.toUpperCase()} → ${hitBox.colorName.toUpperCase()}`);
-          dbg(`Empilhou ${nextBox.colorName} sobre ${hitBox.colorName}`);
+            `✓ EMPILHADO\n${nextBox.colorName.toUpperCase()} → ${target.colorName.toUpperCase()}`);
+          dbg(`Empilhou ${nextBox.colorName} sobre ${target.colorName}`);
         } else {
           bm.errorCount++;
-          bm.flashError(hitBox.mesh);
+          bm.flashError(target.mesh);
           toast('error',
-            `✗ ERRO DE PICKING\n${nextBox.colorName.toUpperCase()} NÃO pode ir sobre ${hitBox.colorName.toUpperCase()}`);
-          dbg(`ERRO: ${nextBox.colorName} não pode sobre ${hitBox.colorName}`);
+            `✗ ERRO DE PICKING\n${nextBox.colorName.toUpperCase()} NÃO pode ir sobre ${target.colorName.toUpperCase()}`);
+          dbg(`ERRO: ${nextBox.colorName} não pode sobre ${target.colorName}`);
         }
       } else {
         // ── CUBING MODULE: place on real floor from hit-test pose ─
