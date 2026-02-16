@@ -3,298 +3,320 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-  <title>AR Cubagem & Picking — WebXR Logistics</title>
-
-  <!-- Google Font: Industrial/Monospace aesthetic for logistics app -->
+  <title>AR Cubagem & Picking — WebXR</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet" />
 
   <style>
     :root {
-      --clr-bg:      #080c10;
-      --clr-panel:   rgba(8, 18, 28, 0.88);
-      --clr-border:  rgba(0, 200, 255, 0.25);
-      --clr-cyan:    #00c8ff;
-      --clr-red:     #ff3c3c;
-      --clr-green:   #39ff6a;
-      --clr-blue:    #3a8fff;
-      --clr-yellow:  #ffd43b;
-      --font-mono:   'Share Tech Mono', monospace;
-      --font-ui:     'Barlow Condensed', sans-serif;
+      --cyan:  #00c8ff;
+      --red:   #ff3c3c;
+      --green: #39ff6a;
+      --blue:  #3a8fff;
+      --panel: rgba(4, 14, 24, 0.82);
+      --mono:  'Share Tech Mono', monospace;
+      --ui:    'Barlow Condensed', sans-serif;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    body {
-      background: var(--clr-bg);
-      color: #c8d8e8;
-      font-family: var(--font-ui);
+    html, body {
+      width: 100%; height: 100%;
+      background: #080c10;
       overflow: hidden;
-      width: 100vw; height: 100vh;
+      font-family: var(--ui);
+      color: #c8d8e8;
     }
 
-    /* ─── SPLASH SCREEN ─────────────────────────────────────────── */
+    /* ── Canvas must sit at z-index 0, full screen ── */
+    canvas {
+      position: fixed !important;
+      top: 0 !important; left: 0 !important;
+      width: 100% !important; height: 100% !important;
+      z-index: 0;
+      display: block;
+    }
+
+    /* ═══════════════════ SPLASH ═══════════════════ */
     #splash {
-      position: fixed; inset: 0; z-index: 100;
-      background: var(--clr-bg);
+      position: fixed; inset: 0; z-index: 200;
+      background: #080c10;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      gap: 20px;
+      gap: 18px; padding: 24px;
       transition: opacity .5s;
     }
+    #splash.hidden { opacity: 0; pointer-events: none; }
+
+    .logo-ring {
+      width: 90px; height: 90px;
+      border: 2px solid var(--cyan);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.4rem;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(0,200,255,.45); }
+      50%      { box-shadow: 0 0 0 14px rgba(0,200,255,0); }
+    }
+
     #splash h1 {
-      font-family: var(--font-mono);
-      font-size: clamp(1.2rem, 5vw, 1.8rem);
-      color: var(--clr-cyan);
+      font-family: var(--mono);
+      font-size: clamp(1.1rem, 4.5vw, 1.6rem);
+      color: var(--cyan);
       letter-spacing: .15em;
       text-transform: uppercase;
       text-align: center;
-      line-height: 1.4;
+      line-height: 1.5;
     }
-    #splash p { font-size: 1rem; opacity: .65; text-align: center; max-width: 320px; }
-    .scanline-logo {
-      width: 96px; height: 96px;
-      border: 2px solid var(--clr-cyan);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
-      animation: pulse-ring 2s infinite;
-    }
-    .scanline-logo::before {
-      content: '';
-      position: absolute;
-      width: 72px; height: 72px;
-      border: 1px dashed var(--clr-cyan);
-      border-radius: 50%;
-      opacity: .4;
-      animation: spin 8s linear infinite;
-    }
-    .scanline-logo span { font-size: 2.4rem; }
-    @keyframes pulse-ring {
-      0%,100% { box-shadow: 0 0 0 0 rgba(0,200,255,.5); }
-      50%      { box-shadow: 0 0 0 16px rgba(0,200,255,0); }
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    #splash p { font-size: .88rem; opacity: .6; text-align: center; max-width: 300px; line-height: 1.5; }
 
-    /* ─── AR BUTTON (styled by Three.js, but we override) ────────── */
-    #ar-button-container {
+    .rules-box {
+      background: rgba(0,200,255,.06);
+      border: 1px solid rgba(0,200,255,.2);
+      padding: 10px 16px;
+      font-family: var(--mono);
+      font-size: .72rem;
+      line-height: 1.9;
+      width: 100%; max-width: 300px;
+    }
+    .rules-box span { color: var(--cyan); }
+
+    /* ═══════════════════ AR BUTTON ════════════════ */
+    #ar-button-wrap {
       position: fixed; bottom: 40px; left: 50%;
       transform: translateX(-50%);
-      z-index: 50;
+      z-index: 201;
     }
-    /* Three.js ARButton injects its own button — we restyle via class */
-    button.ar-btn,
-    #ar-button-container button {
+    #ar-button-wrap button {
       background: transparent !important;
-      border: 1.5px solid var(--clr-cyan) !important;
-      color: var(--clr-cyan) !important;
-      font-family: var(--font-mono) !important;
-      font-size: .85rem !important;
+      border: 1.5px solid var(--cyan) !important;
+      color: var(--cyan) !important;
+      font-family: var(--mono) !important;
+      font-size: .82rem !important;
       letter-spacing: .12em !important;
       text-transform: uppercase !important;
-      padding: 12px 32px !important;
+      padding: 12px 36px !important;
       cursor: pointer !important;
-      transition: background .2s, color .2s !important;
       border-radius: 2px !important;
+      transition: all .2s !important;
     }
-    #ar-button-container button:hover {
-      background: var(--clr-cyan) !important;
+    #ar-button-wrap button:hover {
+      background: var(--cyan) !important;
       color: #000 !important;
     }
 
-    /* ─── DOM OVERLAY (shown while in AR) ────────────────────────── */
-    #dom-overlay {
-      position: fixed; inset: 0; pointer-events: none;
+    /* ═══════════════════ DOM OVERLAY (inside AR) ══ */
+    #overlay {
+      position: fixed; inset: 0;
+      z-index: 1;
+      pointer-events: none;
       display: none;
-      z-index: 10;
     }
-    #dom-overlay.active { display: block; }
+    #overlay.active { display: block; }
 
-    /* Top HUD */
-    #hud-top {
-      position: absolute; top: 16px; left: 16px; right: 16px;
-      display: flex; align-items: flex-start; justify-content: space-between;
-      gap: 10px;
-    }
-    .hud-panel {
-      background: var(--clr-panel);
-      border: 1px solid var(--clr-border);
-      padding: 8px 14px;
+    #status-bar {
+      position: absolute; top: 16px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--panel);
+      border: 1px solid rgba(0,200,255,.3);
       backdrop-filter: blur(8px);
-      font-family: var(--font-mono);
+      padding: 6px 18px;
+      font-family: var(--mono);
       font-size: .72rem;
-      line-height: 1.6;
+      color: var(--cyan);
+      letter-spacing: .06em;
+      white-space: nowrap;
+    }
+
+    #hud-next {
+      position: absolute; top: 56px; left: 12px;
+      background: var(--panel);
+      border: 1px solid rgba(0,200,255,.25);
+      backdrop-filter: blur(8px);
+      padding: 8px 12px;
+      font-family: var(--mono);
+      font-size: .68rem;
+      line-height: 1.7;
       min-width: 140px;
     }
-    .hud-panel .label { color: var(--clr-cyan); text-transform: uppercase; letter-spacing: .08em; }
-    .hud-panel .value { font-size: 1rem; font-weight: 700; }
-    #next-box-panel .swatch {
-      display: inline-block; width: 10px; height: 10px;
-      border-radius: 50%; margin-right: 4px; vertical-align: middle;
-    }
+    #hud-next .label { color: var(--cyan); font-size: .6rem; text-transform: uppercase; letter-spacing: .08em; }
+    .color-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
 
-    /* Feedback toast */
-    #feedback-toast {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: var(--clr-panel);
-      border: 1px solid var(--clr-border);
-      padding: 12px 24px;
-      font-family: var(--font-mono);
-      font-size: .9rem;
-      text-align: center;
-      backdrop-filter: blur(10px);
-      transition: opacity .35s;
-      opacity: 0;
-      pointer-events: none;
-      min-width: 240px;
-      max-width: 320px;
-    }
-    #feedback-toast.show { opacity: 1; }
-    #feedback-toast.valid   { border-color: var(--clr-green); color: var(--clr-green); }
-    #feedback-toast.invalid { border-color: var(--clr-red);   color: var(--clr-red);   }
-
-    /* Bottom legend */
-    #legend {
-      position: absolute; bottom: 16px; left: 16px; right: 16px;
-      display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
-    }
-    .legend-chip {
-      background: var(--clr-panel);
-      border: 1px solid var(--clr-border);
-      padding: 5px 12px;
-      font-family: var(--font-mono);
-      font-size: .68rem;
-      display: flex; align-items: center; gap: 6px;
+    #hud-stats {
+      position: absolute; top: 56px; right: 12px;
+      background: var(--panel);
+      border: 1px solid rgba(0,200,255,.25);
       backdrop-filter: blur(8px);
+      padding: 8px 12px;
+      font-family: var(--mono);
+      font-size: .68rem;
+      line-height: 1.7;
+      text-align: right;
     }
-    .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-    .dot-red   { background: var(--clr-red); }
-    .dot-green { background: var(--clr-green); }
-    .dot-blue  { background: var(--clr-blue); }
+    #hud-stats .label { color: var(--cyan); font-size: .6rem; text-transform: uppercase; letter-spacing: .08em; }
 
-    /* Stats counter */
-    #stats { font-size: .65rem; opacity: .5; text-align: center; margin-top: 4px; }
+    #toast {
+      position: absolute; top: 46%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,.15);
+      backdrop-filter: blur(10px);
+      padding: 10px 20px;
+      font-family: var(--mono);
+      font-size: .8rem;
+      text-align: center;
+      min-width: 220px;
+      max-width: 290px;
+      opacity: 0;
+      transition: opacity .3s;
+      line-height: 1.5;
+      pointer-events: none;
+    }
+    #toast.show   { opacity: 1; }
+    #toast.valid  { border-color: var(--green); color: var(--green); }
+    #toast.error  { border-color: var(--red);   color: var(--red);   }
 
-    /* ─── Non-AR info ────────────────────────────────────────── */
-    #desktop-info {
-      position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-      font-size: .78rem; opacity: .45; text-align: center;
-      font-family: var(--font-mono);
-      z-index: 50;
+    #legend {
+      position: absolute; bottom: 14px; left: 0; right: 0;
+      display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;
+      padding: 0 10px;
+    }
+    .chip {
+      background: var(--panel);
+      border: 1px solid rgba(0,200,255,.2);
+      backdrop-filter: blur(8px);
+      padding: 4px 10px;
+      font-family: var(--mono);
+      font-size: .62rem;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* Debug bar — always visible, helps diagnose on device */
+    #debug {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,.75);
+      font-family: var(--mono);
+      font-size: .58rem;
+      color: #667788;
+      padding: 4px 8px;
+      z-index: 300;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   </style>
 </head>
 <body>
 
-  <!-- ═══ SPLASH ═════════════════════════════════════════════════ -->
+  <!-- SPLASH -->
   <div id="splash">
-    <div class="scanline-logo"><span>📦</span></div>
+    <div class="logo-ring">📦</div>
     <h1>AR Cubagem<br/>&amp; Picking</h1>
-    <p>Sistema de Auxílio à Cubagem e Picking via WebXR.<br/>Aponte para uma superfície plana e toque para empilhar caixas.</p>
+    <p>Aponte para o chão e toque para posicionar caixas. O sistema valida o empilhamento automaticamente.</p>
+    <div class="rules-box">
+      <span>🔴 VERMELHO</span> V &gt; X → suporta tudo<br/>
+      <span>🟢 VERDE</span> Y &lt; V &lt; X → suporta 🟢🔵<br/>
+      <span>🔵 AZUL</span> V &lt; Y → só suporta 🔵
+    </div>
+    <p style="font-size:.72rem;opacity:.4">Toque para fechar</p>
   </div>
 
-  <!-- ═══ AR BUTTON ══════════════════════════════════════════════ -->
-  <div id="ar-button-container"></div>
+  <!-- AR Button injected here by Three.js -->
+  <div id="ar-button-wrap"></div>
 
-  <div id="desktop-info">Requer dispositivo com suporte a WebXR (Android + Chrome)</div>
-
-  <!-- ═══ DOM OVERLAY (shown inside AR session) ═════════════════ -->
-  <div id="dom-overlay">
-
-    <div id="hud-top">
-      <!-- Próxima caixa a ser gerada -->
-      <div class="hud-panel" id="next-box-panel">
-        <div class="label">Próxima Caixa</div>
-        <div class="value" id="next-box-info">—</div>
-      </div>
-
-      <!-- Regras de empilhamento -->
-      <div class="hud-panel" style="text-align:right;">
-        <div class="label">Toque para empilhar</div>
-        <div style="font-size:.65rem; margin-top:4px; opacity:.75;">
-          🔴 suporta tudo<br/>
-          🟢 suporta 🟢🔵<br/>
-          🔵 suporta 🔵
-        </div>
-      </div>
+  <!-- DOM Overlay — active during AR session -->
+  <div id="overlay">
+    <div id="status-bar">🔍 Procurando superfície…</div>
+    <div id="hud-next">
+      <div class="label">Próxima caixa</div>
+      <div id="next-info">—</div>
     </div>
-
-    <!-- Feedback central -->
-    <div id="feedback-toast"></div>
-
-    <!-- Legenda inferior -->
+    <div id="hud-stats">
+      <div class="label">Sessão</div>
+      <div>Caixas: <span id="cnt-boxes">0</span></div>
+      <div>Erros: <span id="cnt-errors" style="color:var(--red)">0</span></div>
+    </div>
+    <div id="toast"></div>
     <div id="legend">
-      <div class="legend-chip"><div class="dot dot-red"></div>VERMELHO V&gt;X</div>
-      <div class="legend-chip"><div class="dot dot-green"></div>VERDE Y&lt;V&lt;X</div>
-      <div class="legend-chip"><div class="dot dot-blue"></div>AZUL V&lt;Y</div>
+      <div class="chip"><div class="dot" style="background:var(--red)"></div>VERMELHO V&gt;X</div>
+      <div class="chip"><div class="dot" style="background:var(--green)"></div>VERDE Y&lt;V&lt;X</div>
+      <div class="chip"><div class="dot" style="background:var(--blue)"></div>AZUL V&lt;Y</div>
     </div>
-    <div id="stats">Caixas: <span id="box-count">0</span> | Erros: <span id="error-count">0</span></div>
-
   </div>
 
-  <!-- ═══ Three.js Import Map ═══════════════════════════════════ -->
+  <!-- Debug bar -->
+  <div id="debug">Aguardando AR…</div>
+
   <script type="importmap">
   {
     "imports": {
-      "three":          "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
-      "three/addons/":  "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+      "three":         "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
     }
   }
   </script>
 
-  <!-- ═══ Application Script ════════════════════════════════════ -->
   <script type="module">
     import * as THREE from 'three';
-    import { ARButton }  from 'three/addons/webxr/ARButton.js';
+    import { ARButton } from 'three/addons/webxr/ARButton.js';
 
-    // ──────────────────────────────────────────────────────────────
-    // VOLUME THRESHOLDS
-    //   Dimensions: 0.2m – 0.5m → Volume range ≈ 0.008 – 0.125 m³
-    //   X = 0.075  →  Red   if V > 0.075
-    //   Y = 0.030  →  Blue  if V < 0.030
-    //              →  Green otherwise
-    // ──────────────────────────────────────────────────────────────
-    const X_THRESHOLD = 0.075;
-    const Y_THRESHOLD = 0.030;
+    // ─── Debug helper ──────────────────────────────────────────────
+    const dbgEl = document.getElementById('debug');
+    function dbg(msg) {
+      dbgEl.textContent = '⬡ ' + msg;
+      console.log('[AR]', msg);
+    }
+
+    // ─── Volume thresholds ─────────────────────────────────────────
+    //   Dimension range: 0.20–0.50 m  →  Volume range: 0.008–0.125 m³
+    //   X = 0.075 → Red  if V > X
+    //   Y = 0.030 → Blue if V < Y  |  Green otherwise
+    const X = 0.075;
+    const Y = 0.030;
 
     // ══════════════════════════════════════════════════════════════
     // RENDERER
     // ══════════════════════════════════════════════════════════════
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.xr.enabled = true;
-    renderer.shadowMap.enabled = true;
     document.body.appendChild(renderer.domElement);
 
     // ══════════════════════════════════════════════════════════════
-    // AR BUTTON  — requires 'hit-test' feature (no legacy WebVR)
+    // AR BUTTON — WebXR hit-test only, NO legacy APIs
     // ══════════════════════════════════════════════════════════════
+    const overlayEl = document.getElementById('overlay');
     const arBtn = ARButton.createButton(renderer, {
-      requiredFeatures: ['hit-test'],
+      requiredFeatures:  ['hit-test'],
       optionalFeatures:  ['dom-overlay'],
-      domOverlay:        { root: document.getElementById('dom-overlay') },
+      domOverlay:        { root: overlayEl },
     });
-    document.getElementById('ar-button-container').appendChild(arBtn);
+    document.getElementById('ar-button-wrap').appendChild(arBtn);
+
+    // Check WebXR support
+    if (!('xr' in navigator)) {
+      dbg('❌ WebXR não disponível — use Chrome no Android');
+    } else {
+      navigator.xr.isSessionSupported('immersive-ar').then(ok => {
+        dbg(ok ? '✅ AR suportado — clique START AR' : '❌ AR não suportado neste dispositivo');
+      });
+    }
 
     // ══════════════════════════════════════════════════════════════
-    // SCENE & CAMERA
+    // SCENE
     // ══════════════════════════════════════════════════════════════
     const scene  = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 40);
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
 
-    // Lighting
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x334455, 1.2);
-    scene.add(hemiLight);
-
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    dirLight.position.set(2, 4, 2);
-    dirLight.castShadow = true;
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x223344, 1.4));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+    dirLight.position.set(1, 3, 1);
     scene.add(dirLight);
-
-    const ambLight = new THREE.AmbientLight(0x203050, 0.6);
-    scene.add(ambLight);
+    scene.add(new THREE.AmbientLight(0x334466, 0.5));
 
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
@@ -303,298 +325,290 @@
     });
 
     // ══════════════════════════════════════════════════════════════
-    // RETICLE  — ring that tracks Hit Test surface (floor/table)
-    // This is the visual feedback for surface detection (Módulo Cubagem)
+    // RETICLE — tracks Hit Test surface (Módulo Cubagem)
     // ══════════════════════════════════════════════════════════════
-    const reticleGeo = new THREE.RingGeometry(0.05, 0.08, 40);
-    reticleGeo.rotateX(-Math.PI / 2);  // lay flat on ground
+    const reticleGroup = new THREE.Group();
+    reticleGroup.visible = false;
+    reticleGroup.matrixAutoUpdate = false;
+    scene.add(reticleGroup);
 
-    const reticleMat = new THREE.MeshBasicMaterial({
-      color: 0x00c8ff,
-      side: THREE.DoubleSide,
-    });
-    const reticle = new THREE.Mesh(reticleGeo, reticleMat);
-    reticle.matrixAutoUpdate = false;
-    reticle.visible = false;
-    scene.add(reticle);
+    const outerGeo = new THREE.RingGeometry(0.055, 0.085, 48);
+    outerGeo.rotateX(-Math.PI / 2);
+    reticleGroup.add(new THREE.Mesh(outerGeo,
+      new THREE.MeshBasicMaterial({ color: 0x00c8ff, side: THREE.DoubleSide })));
 
-    // Inner dot on reticle for precision targeting
-    const dotGeo = new THREE.CircleGeometry(0.02, 24);
-    dotGeo.rotateX(-Math.PI / 2);
-    const dotMat = new THREE.MeshBasicMaterial({ color: 0x00c8ff, opacity: .5, transparent: true });
-    const dot = new THREE.Mesh(dotGeo, dotMat);
-    reticle.add(dot);
+    const innerGeo = new THREE.CircleGeometry(0.022, 24);
+    innerGeo.rotateX(-Math.PI / 2);
+    reticleGroup.add(new THREE.Mesh(innerGeo,
+      new THREE.MeshBasicMaterial({ color: 0x00c8ff, transparent: true, opacity: .35 })));
 
     // ══════════════════════════════════════════════════════════════
-    // BOX MANAGER — Módulo de Cubagem Virtual + Picking Guiado
+    // BOX MANAGER — Cubagem + Picking logic
     // ══════════════════════════════════════════════════════════════
     class BoxManager {
       constructor() {
-        /** @type {Array<{mesh: THREE.Mesh, colorName: string, w: number, h: number, d: number, worldPos: THREE.Vector3}>} */
-        this.boxes = [];
+        this.boxes      = [];
         this.errorCount = 0;
-        this.nextBoxData = null;   // pre-generated box shown in HUD
+        this.boxCount   = 0;
       }
 
-      // ── A. Dynamic Generation ─────────────────────────────────
-      generateBoxData() {
-        const rnd = (min, max) => Math.random() * (max - min) + min;
-        const w = rnd(0.20, 0.50);
-        const h = rnd(0.20, 0.50);
-        const d = rnd(0.20, 0.50);
-        const volume = w * h * d;
-
-        let colorName, hexColor, emissiveHex;
-        if (volume > X_THRESHOLD) {
-          colorName = 'red';   hexColor = 0xdd2020; emissiveHex = 0x330000;
-        } else if (volume > Y_THRESHOLD) {
-          colorName = 'green'; hexColor = 0x22cc44; emissiveHex = 0x003311;
-        } else {
-          colorName = 'blue';  hexColor = 0x2266ee; emissiveHex = 0x001133;
-        }
-
-        return { w, h, d, volume, colorName, hexColor, emissiveHex };
+      // A. Dynamic generation with volume-based color classification
+      generate() {
+        const r = (a, b) => Math.random() * (b - a) + a;
+        const w = r(0.20, 0.50);
+        const h = r(0.20, 0.50);
+        const d = r(0.20, 0.50);
+        const v = w * h * d;
+        let colorName, hex, emissive;
+        if      (v > X) { colorName = 'red';   hex = 0xcc2222; emissive = 0x220000; }
+        else if (v > Y) { colorName = 'green'; hex = 0x22aa44; emissive = 0x002210; }
+        else            { colorName = 'blue';  hex = 0x2255dd; emissive = 0x001040; }
+        return { w, h, d, v, colorName, hex, emissive };
       }
 
-      // ── B. Stacking Logic ─────────────────────────────────────
-      // Módulo de Picking Guiado: valida se a caixa pode ser empilhada
+      // B. Stacking rules (Módulo Picking Guiado)
+      // Returns true if topColor can sit on bottomColor
       canStack(topColor, bottomColor) {
         const rules = {
           red:   ['red', 'green', 'blue'],
           green: ['green', 'blue'],
           blue:  ['blue'],
         };
-        return rules[bottomColor]?.includes(topColor) ?? true;
+        return (rules[bottomColor] || []).includes(topColor);
       }
 
-      // ── Place box at 3D world position ────────────────────────
-      placeBox(boxData, worldPos, parentScene) {
-        const geo = new THREE.BoxGeometry(boxData.w, boxData.h, boxData.d);
+      // C. Place box — worldY is the Y center of the box
+      place(data, worldX, worldY, worldZ) {
+        const geo = new THREE.BoxGeometry(data.w, data.h, data.d);
         const mat = new THREE.MeshPhongMaterial({
-          color:     boxData.hexColor,
-          emissive:  boxData.emissiveHex,
-          shininess: 60,
-          transparent: true,
-          opacity: 0.88,
+          color: data.hex, emissive: data.emissive,
+          shininess: 55, transparent: true, opacity: 0.88,
         });
         const mesh = new THREE.Mesh(geo, mat);
-        mesh.castShadow    = true;
-        mesh.receiveShadow = true;
-        mesh.position.copy(worldPos);
+        mesh.position.set(worldX, worldY, worldZ);
+        mesh.castShadow = mesh.receiveShadow = true;
 
-        // Wireframe edges for industrial look
-        const edges    = new THREE.EdgesGeometry(geo);
-        const edgeMat  = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .35 });
-        mesh.add(new THREE.LineSegments(edges, edgeMat));
+        // Wireframe edges
+        mesh.add(new THREE.LineSegments(
+          new THREE.EdgesGeometry(geo),
+          new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .28 })
+        ));
 
-        // Label sprite (color category)
-        const labelSprite = this._makeLabel(boxData.colorName.toUpperCase(),
-          `W${(boxData.w*100).toFixed(0)} H${(boxData.h*100).toFixed(0)} D${(boxData.d*100).toFixed(0)}cm`);
-        labelSprite.position.y = boxData.h / 2 + 0.05;
-        mesh.add(labelSprite);
-
-        parentScene.add(mesh);
+        // Canvas label
+        mesh.add(this._label(data));
+        scene.add(mesh);
 
         this.boxes.push({
           mesh,
-          colorName: boxData.colorName,
-          w: boxData.w, h: boxData.h, d: boxData.d,
-          worldPos: worldPos.clone(),
+          colorName: data.colorName,
+          w: data.w, h: data.h, d: data.d,
+          cx: worldX, cy: worldY, cz: worldZ,
         });
-
+        this.boxCount++;
         return mesh;
       }
 
-      // ── Find which box (if any) the ray hits ─────────────────
-      getBoxHit(raycaster) {
+      // Raycast against placed boxes
+      hitTest(raycaster) {
         const meshes = this.boxes.map(b => b.mesh);
         const hits   = raycaster.intersectObjects(meshes, false);
         if (!hits.length) return null;
-        const hitMesh = hits[0].object;
-        return this.boxes.find(b => b.mesh === hitMesh) || null;
+        return this.boxes.find(b => b.mesh === hits[0].object) || null;
       }
 
-      // ── Flash a mesh red to signal invalid stacking ───────────
-      // Módulo de Picking: feedback visual de erro
-      flashError(targetMesh) {
-        const origColor = targetMesh.material.color.clone();
-        const origEmit  = targetMesh.material.emissive.clone();
-        let   flashes   = 0;
-        const interval  = setInterval(() => {
-          flashes++;
-          const isOdd = flashes % 2 === 1;
-          targetMesh.material.color.set(isOdd ? 0xff0000 : origColor);
-          targetMesh.material.emissive.set(isOdd ? 0x880000 : origEmit);
-          if (flashes >= 6) {
-            clearInterval(interval);
-            targetMesh.material.color.copy(origColor);
-            targetMesh.material.emissive.copy(origEmit);
+      // Flash box red → picking error visual feedback
+      flashError(mesh) {
+        const oc = mesh.material.color.clone();
+        const oe = mesh.material.emissive.clone();
+        let i = 0;
+        const iv = setInterval(() => {
+          i++;
+          const odd = i % 2 === 1;
+          mesh.material.color.set(odd ? 0xff0000 : oc);
+          mesh.material.emissive.set(odd ? 0x660000 : oe);
+          if (i >= 6) {
+            clearInterval(iv);
+            mesh.material.color.copy(oc);
+            mesh.material.emissive.copy(oe);
           }
-        }, 130);
+        }, 120);
       }
 
-      // ── Sprite text label on each box ─────────────────────────
-      _makeLabel(line1, line2) {
-        const canvas  = document.createElement('canvas');
-        canvas.width  = 256; canvas.height = 96;
-        const ctx     = canvas.getContext('2d');
-        ctx.fillStyle = 'rgba(0,0,0,0.55)';
-        ctx.fillRect(0, 0, 256, 96);
-        ctx.fillStyle = '#ffffff';
-        ctx.font      = 'bold 28px monospace';
+      _label(data) {
+        const c   = document.createElement('canvas');
+        c.width   = 256; c.height = 80;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = 'rgba(0,0,0,.5)';
+        ctx.fillRect(0, 0, 256, 80);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 26px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(line1, 128, 36);
-        ctx.font      = '18px monospace';
+        ctx.fillText(data.colorName.toUpperCase(), 128, 30);
+        ctx.font = '17px monospace';
         ctx.fillStyle = '#aaccff';
-        ctx.fillText(line2, 128, 66);
-        const tex = new THREE.CanvasTexture(canvas);
-        const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: .85 });
-        const spr = new THREE.Sprite(mat);
-        spr.scale.set(.22, .08, 1);
+        ctx.fillText(
+          `${(data.w*100).toFixed(0)}x${(data.h*100).toFixed(0)}x${(data.d*100).toFixed(0)}cm`,
+          128, 58
+        );
+        const spr = new THREE.Sprite(new THREE.SpriteMaterial({
+          map: new THREE.CanvasTexture(c), transparent: true, opacity: .85,
+        }));
+        spr.scale.set(.20, .07, 1);
+        spr.position.y = data.h / 2 + 0.045;
         return spr;
       }
     }
 
-    const boxManager = new BoxManager();
+    const bm = new BoxManager();
+    let nextBox = bm.generate();
+    refreshHUD();
 
-    // Pre-generate first next-box and update HUD
-    function refreshNextBox() {
-      boxManager.nextBoxData = boxManager.generateBoxData();
-      updateNextBoxHUD(boxManager.nextBoxData);
-    }
-    refreshNextBox();
-
-    function updateNextBoxHUD(data) {
-      const colorMap = { red: '#ff3c3c', green: '#39ff6a', blue: '#3a8fff' };
-      const el = document.getElementById('next-box-info');
-      el.innerHTML = `<span class="swatch" style="background:${colorMap[data.colorName]}"></span>`
-        + `${data.colorName.toUpperCase()}<br/>`
-        + `<span style="font-size:.65rem;opacity:.7;">`
-        + `${(data.w*100).toFixed(0)}×${(data.h*100).toFixed(0)}×${(data.d*100).toFixed(0)}cm`
-        + ` | V=${(data.volume*1e6).toFixed(0)}cc</span>`;
-    }
-
-    // ══════════════════════════════════════════════════════════════
-    // FEEDBACK TOAST  — shows valid/invalid placement message
-    // ══════════════════════════════════════════════════════════════
-    let toastTimeout = null;
-    function showFeedback(type, msg) {
-      const el = document.getElementById('feedback-toast');
-      el.textContent = msg;
-      el.className   = `show ${type}`;
-      clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => el.classList.remove('show'), 2200);
+    function refreshHUD() {
+      const colorCSS = { red: '#ff3c3c', green: '#39ff6a', blue: '#3a8fff' };
+      document.getElementById('next-info').innerHTML =
+        `<span class="color-dot" style="background:${colorCSS[nextBox.colorName]}"></span>`
+        + `<b>${nextBox.colorName.toUpperCase()}</b><br/>`
+        + `<span style="font-size:.63rem;opacity:.7;">`
+        + `${(nextBox.w*100).toFixed(0)}x${(nextBox.h*100).toFixed(0)}x${(nextBox.d*100).toFixed(0)}cm`
+        + ` V=${(nextBox.v*1e6).toFixed(0)}cc</span>`;
     }
 
     function updateStats() {
-      document.getElementById('box-count').textContent   = boxManager.boxes.length;
-      document.getElementById('error-count').textContent = boxManager.errorCount;
+      document.getElementById('cnt-boxes').textContent  = bm.boxCount;
+      document.getElementById('cnt-errors').textContent = bm.errorCount;
+    }
+
+    let toastTimer;
+    function toast(type, msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className   = `show ${type}`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.className = ''; }, 2400);
     }
 
     // ══════════════════════════════════════════════════════════════
-    // HIT-TEST SOURCE
-    // The XR Hit Test detects real-world surfaces for stable placement
+    // HIT TEST SOURCE
     // ══════════════════════════════════════════════════════════════
-    let hitTestSource    = null;
-    let hitTestActive    = false;
+    let hitTestSource = null;
 
     renderer.xr.addEventListener('sessionstart', async () => {
-      // Show DOM overlay
-      document.getElementById('dom-overlay').classList.add('active');
-      document.getElementById('splash').style.opacity = '0';
-      setTimeout(() => document.getElementById('splash').style.display = 'none', 500);
+      dbg('✅ Sessão AR iniciada — inicializando hit-test…');
+      overlayEl.classList.add('active');
+      document.getElementById('splash').classList.add('hidden');
 
       const session = renderer.xr.getSession();
+
       try {
         const viewerSpace = await session.requestReferenceSpace('viewer');
-        hitTestSource  = await session.requestHitTestSource({ space: viewerSpace });
-        hitTestActive  = true;
-      } catch (e) {
-        console.warn('Hit-test source failed:', e);
+        hitTestSource     = await session.requestHitTestSource({ space: viewerSpace });
+        dbg('✅ Hit-test ativo — aponte para o chão');
+      } catch (err) {
+        dbg(`❌ Hit-test erro: ${err.message}`);
       }
-    });
 
-    renderer.xr.addEventListener('sessionend', () => {
-      hitTestSource  = null;
-      hitTestActive  = false;
-      reticle.visible = false;
-      document.getElementById('dom-overlay').classList.remove('active');
+      session.addEventListener('end', () => {
+        hitTestSource = null;
+        reticleGroup.visible = false;
+        overlayEl.classList.remove('active');
+        dbg('Sessão encerrada');
+      });
     });
 
     // ══════════════════════════════════════════════════════════════
-    // CONTROLLER / SELECT (TAP)
-    // Módulo de Cubagem Virtual + Picking Guiado combined in one handler
+    // PLACEMENT HANDLER
+    // Called by controller 'select' AND touchend fallback
     // ══════════════════════════════════════════════════════════════
-    const controller = renderer.xr.getController(0);
-    scene.add(controller);
+    function handlePlacement() {
+      if (!reticleGroup.visible) {
+        toast('error', '⚠️ Aponte para uma superfície plana antes de tocar.');
+        return;
+      }
 
-    controller.addEventListener('select', () => {
-      if (!reticle.visible) return;
+      // Ray from XR camera
+      const xrCam  = renderer.xr.getCamera();
+      const origin = new THREE.Vector3().setFromMatrixPosition(xrCam.matrixWorld);
+      const dir    = new THREE.Vector3(0, 0, -1)
+        .applyQuaternion(xrCam.quaternion)
+        .normalize();
+      const ray    = new THREE.Raycaster(origin, dir, 0.01, 15);
 
-      // Use pre-generated box data (shown in HUD)
-      const boxData = boxManager.nextBoxData;
-
-      // ── Build a ray from the XR camera (viewer) ───────────────
-      const xrCamera  = renderer.xr.getCamera();
-      const camPos    = new THREE.Vector3().setFromMatrixPosition(xrCamera.matrixWorld);
-      const camDir    = new THREE.Vector3(0, 0, -1).applyMatrix4(
-                          new THREE.Matrix4().extractRotation(xrCamera.matrixWorld)
-                        ).normalize();
-      const raycaster = new THREE.Raycaster(camPos, camDir, 0.01, 20);
-
-      // ── Check if ray intersects any placed box ────────────────
-      const hitBox = boxManager.getBoxHit(raycaster);
+      // Check if ray hits a placed box
+      const hitBox = bm.hitTest(ray);
 
       if (hitBox) {
-        // ── PICKING MODULE: Validate stacking rule ────────────────
-        if (boxManager.canStack(boxData.colorName, hitBox.colorName)) {
-          // Valid stacking — place on top of hit box
-          const topY  = hitBox.worldPos.y + hitBox.h / 2 + boxData.h / 2;
-          const pos   = new THREE.Vector3(hitBox.worldPos.x, topY, hitBox.worldPos.z);
-          boxManager.placeBox(boxData, pos, scene);
-          showFeedback('valid',
-            `✓ EMPILHADO\n${boxData.colorName.toUpperCase()} sobre ${hitBox.colorName.toUpperCase()}`);
+        // ── PICKING MODULE: validate stacking rule ───────────────
+        if (bm.canStack(nextBox.colorName, hitBox.colorName)) {
+          const topY = hitBox.cy + hitBox.h / 2 + nextBox.h / 2;
+          bm.place(nextBox, hitBox.cx, topY, hitBox.cz);
+          toast('valid',
+            `✓ EMPILHADO\n${nextBox.colorName.toUpperCase()} → ${hitBox.colorName.toUpperCase()}`);
+          dbg(`Empilhou ${nextBox.colorName} sobre ${hitBox.colorName}`);
         } else {
-          // Invalid stacking — Picking error! Flash and warn.
-          boxManager.errorCount++;
-          boxManager.flashError(hitBox.mesh);
-          showFeedback('invalid',
-            `✗ ERRO DE PICKING\n${boxData.colorName.toUpperCase()} NÃO pode ser empilhada sobre ${hitBox.colorName.toUpperCase()}`);
+          bm.errorCount++;
+          bm.flashError(hitBox.mesh);
+          toast('error',
+            `✗ ERRO DE PICKING\n${nextBox.colorName.toUpperCase()} NÃO pode ir sobre ${hitBox.colorName.toUpperCase()}`);
+          dbg(`ERRO: ${nextBox.colorName} não pode sobre ${hitBox.colorName}`);
         }
       } else {
-        // ── CUBING MODULE: Place box on real-world floor surface ──
-        const floorPos = new THREE.Vector3().setFromMatrixPosition(reticle.matrix);
-        floorPos.y    += boxData.h / 2;   // raise by half-height so bottom sits on floor
-        boxManager.placeBox(boxData, floorPos, scene);
-        showFeedback('valid',
-          `✓ CAIXA POSICIONADA\n${boxData.colorName.toUpperCase()} no piso`);
+        // ── CUBING MODULE: place on real floor from hit-test pose ─
+        const pos = new THREE.Vector3().setFromMatrixPosition(reticleGroup.matrix);
+        bm.place(nextBox, pos.x, pos.y + nextBox.h / 2, pos.z);
+        toast('valid', `✓ POSICIONADO\n${nextBox.colorName.toUpperCase()} no chão`);
+        dbg(`Posicionou ${nextBox.colorName} no chão`);
       }
 
       updateStats();
-      refreshNextBox();   // generate next box & update HUD
-    });
+      nextBox = bm.generate();
+      refreshHUD();
+    }
+
+    // Primary: XR controller select event
+    const controller = renderer.xr.getController(0);
+    controller.addEventListener('select', handlePlacement);
+    scene.add(controller);
+
+    // Fallback: touchend on canvas (broader device compatibility)
+    renderer.domElement.addEventListener('touchend', (e) => {
+      if (renderer.xr.isPresenting) {
+        e.preventDefault();
+        handlePlacement();
+      }
+    }, { passive: false });
 
     // ══════════════════════════════════════════════════════════════
-    // ANIMATION LOOP
+    // RENDER LOOP
     // ══════════════════════════════════════════════════════════════
+    const statusEl  = document.getElementById('status-bar');
+    let surfaceFound = false;
+
     renderer.setAnimationLoop((timestamp, frame) => {
-      if (frame) {
+      if (frame && hitTestSource) {
         const refSpace = renderer.xr.getReferenceSpace();
-
-        // ── Update reticle from Hit Test results ─────────────────
-        if (hitTestActive && hitTestSource) {
+        if (refSpace) {
           const results = frame.getHitTestResults(hitTestSource);
           if (results.length > 0) {
             const pose = results[0].getPose(refSpace);
             if (pose) {
-              reticle.visible = true;
-              reticle.matrix.fromArray(pose.transform.matrix);
-              // Animate reticle ring scale for pulse effect
-              const s = 1 + 0.08 * Math.sin(timestamp * 0.004);
-              reticle.scale.set(s, 1, s);
+              reticleGroup.visible = true;
+              reticleGroup.matrix.fromArray(pose.transform.matrix);
+              // Subtle pulse
+              const s = 1 + 0.06 * Math.sin(timestamp * 0.005);
+              reticleGroup.scale.set(s, 1, s);
+
+              if (!surfaceFound) {
+                surfaceFound = true;
+                statusEl.textContent = '👆 Toque para posicionar a caixa';
+                dbg('Superfície detectada!');
+              }
             }
           } else {
-            reticle.visible = false;
+            reticleGroup.visible = false;
+            if (surfaceFound) {
+              surfaceFound = false;
+              statusEl.textContent = '🔍 Procurando superfície…';
+            }
           }
         }
       }
@@ -602,31 +616,12 @@
       renderer.render(scene, camera);
     });
 
-    // ══════════════════════════════════════════════════════════════
+    // ──────────────────────────────────────────────────────────────
     // SPLASH DISMISS
-    // ══════════════════════════════════════════════════════════════
+    // ──────────────────────────────────────────────────────────────
     document.getElementById('splash').addEventListener('click', () => {
-      document.getElementById('splash').style.opacity = '0';
-      setTimeout(() => document.getElementById('splash').style.display = 'none', 500);
+      document.getElementById('splash').classList.add('hidden');
     });
-
-    // ══════════════════════════════════════════════════════════════
-    // UNSUPPORTED BROWSER NOTICE
-    // ══════════════════════════════════════════════════════════════
-    if (!('xr' in navigator)) {
-      document.getElementById('desktop-info').textContent =
-        '⚠️ WebXR não suportado neste navegador. Use Chrome no Android.';
-    } else {
-      navigator.xr.isSessionSupported('immersive-ar').then(supported => {
-        if (!supported) {
-          document.getElementById('desktop-info').textContent =
-            '⚠️ AR não suportado neste dispositivo.';
-        } else {
-          document.getElementById('desktop-info').textContent =
-            'Clique em "START AR" para iniciar a sessão de Realidade Aumentada.';
-        }
-      });
-    }
 
   </script>
 </body>
