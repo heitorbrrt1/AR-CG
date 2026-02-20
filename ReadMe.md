@@ -24,6 +24,3 @@ Projeto desenvolvido para a disciplina de [Nome da Matéria] utilizando **Three.
    👉 **[Link da sua Vercel ou GitHub Pages aqui]**
 2. Aponte para o chão até surgir a retícula.
 3. Toque para adicionar caixas e testar o empilhamento.
-
-## 📋 Autor
-[Seu Nome] - [Sua Matrícula]
